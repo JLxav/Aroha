@@ -14,18 +14,21 @@ class SignUpForm(forms.ModelForm):
         (User.Role.REQUESTER, "Requester"),
     ]
  
-    role = forms.ChoiceField(choices = ROLE_CHOICES, label = "I am a")
-    password = forms.CharField(widget = forms.PasswordInput, label = "Password")
-    confirm_password = forms.CharField(widget=forms.PasswordInput, label = "Confirm password")
+    role = forms.ChoiceField(choices=ROLE_CHOICES, label="I am a")
+    password = forms.CharField(widget=forms.PasswordInput, label="Password")
+    confirm_password = forms.CharField(widget=forms.PasswordInput, label="Confirm password")
  
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "username"]
+        fields = ["first_name", "last_name", "username", "phone_number"]
+        labels = {"phone_number": "Contact number"}
  
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["first_name"].required = True
         self.fields["last_name"].required = True
+        self.fields["phone_number"].required = True
+        self.fields["phone_number"].widget.attrs["placeholder"] = "09171234567"
  
     def clean(self):
         cleaned = super().clean()

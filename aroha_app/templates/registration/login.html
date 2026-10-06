@@ -2,16 +2,111 @@
 {% block title %}Log in - Aroha{% endblock %}
 
 {% block content %}
+<style>
+  .login-container {
+    background-color: #e5dfd3; 
+    padding: 48px 40px;
+    border-radius: 12px;
+    max-width: 420px;
+    margin: 60px auto; 
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+  }
+
+  .login-container h1 {
+    color: #4a6349; 
+    text-align: center;
+    font-family: Georgia, serif; 
+    font-size: 26px;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 32px;
+  }
+
+  .login-container label {
+    display: block;
+    color: #3b4653; 
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+
+  .login-container input[type="text"],
+  .login-container input[type="password"] {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 24px;
+    background-color: #899a7a; 
+    border: none; 
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: #ffffff; 
+    font-size: 16px;
+  }
+
+  .login-container input:focus {
+    outline: 2px solid #2a4026; 
+  }
+
+  .login-container button {
+    width: 100%;
+    padding: 14px;
+    background-color: #2a4026; 
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .login-container button:hover {
+    background-color: #1a2917; 
+  }
+
+  .login-container .errorlist {
+    color: #b00020;
+    list-style-type: none;
+    padding: 0;
+    margin-top: -16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+
+  /* Styling for the footer text below the Sign in button */
+  .login-footer {
+    margin-top: 24px;
+    font-size: 14px;
+    color: #3b4653;
+  }
+
+  .login-footer a {
+    color: #4a6349;
+    text-decoration: underline;
+  }
+
+  .login-footer a:hover {
+    font-weight: bold;
+  }
+</style>
+
+<div class="login-container">
   <h1>Log in to Aroha</h1>
   <form method="post">
     {% csrf_token %}
     {{ form.non_field_errors }}
+    
     {% for field in form %}
       <label for="{{ field.id_for_label }}">{{ field.label }}</label>
       {{ field }}
       {{ field.errors }}
     {% endfor %}
-    <button type="submit">Log in</button>
+    
+    <button type="submit">Sign in</button>
   </form>
-  <p>No account yet? <a href="{% url 'signup' %}">Sign up</a></p>
+
+  <!-- Added the "No account yet? Sign up" text and link below the button -->
+  <div class="login-footer">
+    No account yet? <a href="{% url 'signup' %}">Sign up</a>
+  </div>
+</div>
 {% endblock %}

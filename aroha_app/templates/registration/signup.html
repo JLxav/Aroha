@@ -2,16 +2,128 @@
 {% block title %}Sign up - Aroha{% endblock %}
 
 {% block content %}
+<style>
+  .signup-container {
+    background-color: #e5dfd3; /* Inherited beige from login */
+    padding: 48px 40px;
+    border-radius: 12px;
+    max-width: 460px; /* Slightly wider to accommodate more fields comfortably */
+    margin: 60px auto;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+  }
+
+  .signup-container h1 {
+    color: #4a6349; /* Inherited muted dark green */
+    text-align: center;
+    font-family: Georgia, serif;
+    font-size: 28px;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 32px;
+  }
+
+  .signup-container label {
+    display: block;
+    color: #3b4653;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  /* Added select, tel, and number to style the dropdown and new contact field */
+  .signup-container input[type="text"],
+  .signup-container input[type="password"],
+  .signup-container input[type="email"],
+  .signup-container input[type="tel"],
+  .signup-container input[type="number"],
+  .signup-container select {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 20px;
+    background-color: #899a7a; /* Inherited olive green */
+    border: none;
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: #ffffff;
+    font-size: 16px;
+  }
+
+  /* Ensures the dropdown text is white and visible */
+  .signup-container select option {
+    background-color: #899a7a;
+    color: #ffffff;
+  }
+
+  .signup-container input:focus,
+  .signup-container select:focus {
+    outline: 2px solid #2a4026;
+  }
+
+  .signup-container button {
+    width: 100%;
+    padding: 14px;
+    background-color: #2a4026; /* Inherited forest green */
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 12px;
+    font-weight: bold;
+  }
+
+  .signup-container button:hover {
+    background-color: #1a2917;
+  }
+
+  .signup-container .errorlist {
+    color: #b00020;
+    list-style-type: none;
+    padding: 0;
+    margin-top: -16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+
+  /* Styling for the login link at the bottom */
+  .signup-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+    color: #3b4653;
+  }
+
+  .signup-footer a {
+    color: #4a6349;
+    font-weight: bold;
+    text-decoration: none;
+  }
+
+  .signup-footer a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="signup-container">
   <h1>Create an Aroha account</h1>
+  
   <form method="post">
     {% csrf_token %}
     {{ form.non_field_errors }}
+    
+    <!-- This loop automatically generates First Name, Last Name, Username, Role, Passwords, AND your new Contact Number -->
     {% for field in form %}
       <label for="{{ field.id_for_label }}">{{ field.label }}</label>
       {{ field }}
       {{ field.errors }}
     {% endfor %}
+    
     <button type="submit">Sign up</button>
   </form>
-  <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+
+  <div class="signup-footer">
+    Already have an account? <a href="{% url 'login' %}">Log in</a>
+  </div>
+</div>
 {% endblock %}

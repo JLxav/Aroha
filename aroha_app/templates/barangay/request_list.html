@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Barangay requests - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Barangay staff</span></p></div>
+  <nav class="nav" aria-label="Main navigation"><a class="btn secondary" href="{% url 'profile_preview' 'barangay' %}{% if admin_preview %}?from_admin=1{% endif %}">Profile</a>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% else %}<a class="btn secondary" href="{% url 'login' %}">Exit</a>{% endif %}</nav>
+</header>
+<section class="page-heading"><div><h1>Requests from seniors</h1><p class="subtitle">Preview requests submitted by family members.</p></div></section>
+<section class="request-grid">
+  {% for item in requests %}
+    <article class="request-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px"><h2>{{ item.get_request_type_display }}</h2><span class="status">{{ item.get_status_display }}</span></div>
+      <p><strong>Senior:</strong> {{ item.senior_name }}</p>
+      <p><strong>Requested by:</strong> {{ item.requested_by.username }}</p>
+      <p>{{ item.details|truncatechars:100 }}</p>
+      <div class="foot"><span class="meta">{{ item.created_at|date:"M j, Y · g:i a" }}</span><a class="btn small" href="{% url 'barangay_request_detail' item.pk %}{% if admin_preview %}?from_admin=1{% endif %}">View request</a></div>
+    </article>
+  {% empty %}<div class="empty-state">No requests to display.</div>{% endfor %}
+</section>
+{% endblock %}

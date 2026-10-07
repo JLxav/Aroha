@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ role_label }} profile - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· {{ role_label }}</span></p></div>
+  <nav class="nav" aria-label="Main navigation">
+    <a class="btn secondary" href="{% if account_type == 'volunteer' %}{% url 'volunteer_list' %}{% elif account_type == 'family-member' %}{% url 'request_list' %}{% else %}{% url 'barangay_request_list' %}{% endif %}{% if admin_preview %}?from_admin=1{% endif %}">Dashboard</a>
+    {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% else %}<a class="btn" href="{% url 'login' %}">Sign out</a>{% endif %}
+  </nav>
+</header>
+<div class="form-panel">
+  <div class="page-heading"><div><h1>Profile</h1><p class="subtitle">Sample account profile preview.</p></div></div>
+  <section class="detail-list">
+    <span class="detail-label">Name</span><p class="detail-value">{{ display_name }}</p>
+    <span class="detail-label">Username</span><p class="detail-value">{{ username }}</p>
+    <span class="detail-label">Password</span><p class="detail-value">•••••••• <span class="meta">(hidden)</span></p>
+    <span class="detail-label">Phone number</span><p class="detail-value">{{ phone_number }}</p>
+    <span class="detail-label">Account type</span><p class="detail-value">{{ role_label }}</p>
+  </section>
+</div>
+{% endblock %}

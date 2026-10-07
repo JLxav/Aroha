@@ -65,3 +65,28 @@ class ApprovedAuthenticationForm(AuthenticationForm):
                 "Your account is still waiting for admin approval.",
                 code="not_approved",
             )
+
+from django import forms
+from .models import HelpRequest
+
+class HelpRequestForm(forms.ModelForm):
+    class Meta:
+        model = HelpRequest
+        fields = ["senior_name", "contact_person", "request_type", "details"]
+        labels = {
+            "senior_name": "Senior Citizen's Name",
+            "contact_person": "Contact Person / Mobile Number",
+            "request_type": "Type of Assistance Needed",
+            "details": "Details / Notes",
+        }
+        widgets = {
+            "details": forms.Textarea(attrs={"placeholder": "Describe what assistance is needed..."}),
+        }
+
+class BarangayStatusForm(forms.ModelForm):
+    class Meta:
+        model = HelpRequest
+        fields = ["status"]
+        widgets = {
+            "status": forms.Select(attrs={"class": "status-select"}),
+        }

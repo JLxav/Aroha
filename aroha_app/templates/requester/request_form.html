@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit request{% else %}New request{% endif %} - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar"><div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Family member</span></p></div><a class="btn secondary" href="{% url 'request_list' %}">Back to requests</a></header>
+<div class="form-panel">
+  <div class="page-heading"><div><h1>{% if object %}Edit request{% else %}Make a request{% endif %}</h1><p class="subtitle">Tell us who needs help and what kind of assistance would be useful.</p></div></div>
+  {% if preview %}<div class="message">Preview mode: <a href="{% url 'login' %}">log in</a> or <a href="{% url 'signup' %}">sign up</a> to save a request.</div>{% endif %}
+  <form method="post">{% csrf_token %}{{ form.non_field_errors }}
+    {% for field in form %}<p><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</p>{% endfor %}
+    <div class="form-actions"><a class="btn secondary" href="{% url 'request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Cancel</a>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}<button type="submit">{% if object %}Save changes{% else %}Send request{% endif %}</button></div>
+  </form>
+</div>
+{% endblock %}

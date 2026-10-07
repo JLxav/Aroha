@@ -30,4 +30,20 @@ urlpatterns = [
     ),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("signup/", views.signup, name="signup"),
+
+    # Role Dispatcher
+    path("dashboard/", views.dashboard_redirect, name="dashboard_redirect"),
+
+    # Requester Views
+    path("requests/", views.request_list, name="request_list"),
+    path("requests/history/", views.request_history, name="request_history"),
+    path("requests/new/", views.request_create, name="request_create"),
+    path("requests/<int:pk>/edit/", views.request_edit, name="request_edit"),
+
+    # Barangay Staff Views
+    path("barangay/requests/", views.barangay_request_list, name="barangay_request_list"),
+    path("barangay/requests/<int:pk>/", views.barangay_request_detail, name="barangay_request_detail"),
+
+    # Profile View
+    path("profile/<str:role>/", views.profile_preview, name="profile_preview"),
 ]

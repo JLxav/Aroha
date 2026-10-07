@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Request history - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Family member</span></p></div>
+  <nav class="nav" aria-label="Main navigation"><a class="btn secondary" href="{% url 'request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Back to requests</a>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% else %}<a class="btn secondary" href="{% url 'login' %}">Log in</a>{% endif %}</nav>
+</header>
+<section class="page-heading"><div><h1>Request history</h1><p class="subtitle">Completed and rejected requests appear here.</p></div></section>
+<section class="request-grid">
+  {% for item in requests %}
+    <article class="request-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px"><h2>{{ item.get_request_type_display }}</h2><span class="status {% if item.status == 'rejected' %}rejected{% else %}completed{% endif %}">{{ item.get_status_display }}</span></div>
+      <p><strong>Senior:</strong> {{ item.senior_name }}</p><p><strong>Contact person:</strong> {{ item.contact_person }}</p><p>{{ item.details|truncatechars:120 }}</p>
+      <div class="foot"><span class="meta">{{ item.created_at|date:"M j, Y · g:i a" }}</span></div>
+    </article>
+  {% empty %}<div class="empty-state"><h2>No history yet</h2><p>Completed or rejected requests will be listed here.</p></div>{% endfor %}
+</section>
+{% endblock %}

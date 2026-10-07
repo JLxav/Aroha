@@ -121,6 +121,11 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Where to send users after logging in
+LOGIN_REDIRECT_URL = "dashboard_redirect"
+
+# Where to send users after logging out
+LOGOUT_REDIRECT_URL = "login"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/

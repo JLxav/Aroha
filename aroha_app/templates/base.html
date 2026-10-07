@@ -4,32 +4,95 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Aroha{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, Helvetica, sans-serif; font-size: 20px; line-height: 1.5;
-           background: #f4f7fb; color: #1a1a1a; margin: 0; }
-    .card { max-width: 480px; margin: 40px auto; background: #fff; padding: 32px;
-            border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
-    h1 { margin-top: 0; color: #0b4f8a; }
-    label { display: block; font-weight: bold; margin-top: 16px; }
-    input, select { width: 100%; box-sizing: border-box; font-size: 20px; padding: 12px;
-                    margin-top: 6px; border: 2px solid #555; border-radius: 8px; }
-    button { width: 100%; margin-top: 24px; padding: 14px; font-size: 22px; font-weight: bold;
-             background: #0b4f8a; color: #fff; border: 0; border-radius: 8px; cursor: pointer; }
-    button:hover { background: #083a66; }
-    .errorlist { color: #b00020; padding-left: 20px; margin: 6px 0 0; }
-    .message { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: #dff3e4; }
-    .message.error { background: #fde2e2; }
-    a { color: #0b4f8a; }
+    :root { --ink:#283a2c; --muted:#758174; --green:#4f7255; --green-dark:#38563e; --green-pale:#e8efe5; --paper:#f3f3ed; --white:#fff; --line:#e1e7dc; --shadow:0 14px 38px rgba(40,58,44,.08); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; padding:32px 20px; background:var(--paper); color:var(--ink); font:16px/1.55 Arial,Helvetica,sans-serif; }
+    .card { width:100%; max-width:520px; margin:30px auto; padding:36px; background:var(--white); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); }
+    .card.wide { max-width:1440px; min-height:calc(100vh - 64px); padding:36px 42px; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { margin-bottom:8px; color:var(--ink); font-size:clamp(25px,4vw,34px); line-height:1.2; }
+    h2 { font-size:19px; }
+    .subtitle { margin:0; color:var(--muted); }
+    a { color:var(--green-dark); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:30px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-mark { display:grid; width:42px; height:42px; place-items:center; border-radius:14px; background:var(--green-pale); color:var(--green-dark); font-size:21px; font-weight:700; }
+    .brand-name { margin:0; font-size:18px; }
+    .nav { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:9px; }
+    .btn, button { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:10px 16px; border:1px solid transparent; border-radius:10px; background:var(--green); color:white; font:600 14px Arial, sans-serif; cursor:pointer; text-decoration:none; transition:background .15s, transform .15s; }
+    .btn:hover, button:hover { background:var(--green-dark); color:white; text-decoration:none; transform:translateY(-1px); }
+    .btn.secondary { background:white; border-color:var(--line); color:var(--ink); }
+    .btn.secondary:hover { background:var(--green-pale); }
+    .btn.small { min-height:34px; padding:7px 12px; font-size:13px; }
+    .nav form { margin:0; }
+    .page-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:24px; }
+    .request-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+    .request-card { display:flex; min-height:205px; flex-direction:column; padding:20px; border:1px solid var(--line); border-radius:15px; background:#fff; }
+    .request-card h2 { margin:0; font-size:18px; }
+    .request-card p { margin:12px 0 0; color:var(--muted); font-size:14px; }
+    .request-card .foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; padding-top:18px; }
+    .meta { color:var(--muted); font-size:12px; }
+    .status { display:inline-flex; align-items:center; border-radius:999px; padding:5px 10px; background:var(--green-pale); color:var(--green-dark); font-size:12px; font-weight:700; white-space:nowrap; }
+    .status.rejected { background:#fae8e5; color:#994d40; }
+    .status.completed { background:#e8efe5; }
+    .empty-state { grid-column:1/-1; padding:44px 20px; border:1px dashed #cbd6c7; border-radius:15px; color:var(--muted); text-align:center; }
+    .form-panel { max-width:720px; margin:0 auto; }
+    form p { margin:0 0 17px; }
+    label { display:block; margin-bottom:7px; color:var(--ink); font-size:14px; font-weight:700; }
+    input,select,textarea { display:block; width:100%; min-height:44px; padding:11px 13px; border:1px solid #d8e0d4; border-radius:9px; background:#fbfcfa; color:var(--ink); font:15px Arial,sans-serif; }
+    textarea { min-height:120px; resize:vertical; }
+    input:focus,select:focus,textarea:focus { outline:3px solid #dce9da; border-color:var(--green); }
+    .form-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+    .detail-list { display:grid; grid-template-columns:150px 1fr; gap:13px 20px; padding:22px; border:1px solid var(--line); border-radius:14px; background:#fbfcfa; }
+    .detail-label { color:var(--muted); font-size:14px; font-weight:700; }
+    .detail-value { margin:0; overflow-wrap:anywhere; }
+    .message { margin-bottom:18px; padding:12px 15px; border-radius:10px; background:var(--green-pale); color:var(--green-dark); }
+    .message.error { background:#fae8e5; color:#994d40; }
+    .errorlist { margin:5px 0 0; padding-left:18px; color:#a13e37; font-size:13px; }
+    body.site-page { --ink:#2D3748; --muted:#667064; --green:#587548; --green-dark:#284224; --green-pale:#EAE0CC; --paper:#F8F7F2; --white:#F8F7F2; --line:#E5E0D6; font-family:"Plus Jakarta Sans",Arial,sans-serif; background:var(--paper); color:var(--ink); }
+    body.site-page .card.wide { background:#fff; border:0; border-radius:14px; box-shadow:0 8px 28px rgba(40,66,36,.06); }
+    body.site-page h1, body.site-page h2, body.site-page h3 { color:var(--green); }
+    body.site-page h1 { font-family:"Newsreader",Georgia,serif; font-weight:400; }
+    body.site-page .subtitle, body.site-page .meta { color:#667064; }
+    body.site-page .brand-name { color:var(--green); }
+    body.site-page .brand-mark { border-radius:10px; background:var(--green-dark); color:#fff; }
+    body.site-page .request-card { background:var(--green-pale); border-color:transparent; border-radius:10px; box-shadow:none; }
+    body.site-page .empty-state, body.site-page .detail-list { background:var(--green-pale); border-color:transparent; border-radius:10px; }
+    body.site-page .status { background:#E5E9DE; color:var(--green-dark); }
+    body.site-page .status.rejected { background:#F4E5DE; color:#8F4439; }
+    body.site-page .btn, body.site-page button { background:var(--green-dark); color:#fff; border:0; border-radius:10px; font-family:"Plus Jakarta Sans",Arial,sans-serif; }
+    body.site-page .btn:hover, body.site-page button:hover { background:#1E341B; }
+    body.site-page .btn.secondary { background:transparent; border:1px solid #D7D8CC; color:var(--green-dark); }
+    body.site-page .btn.secondary:hover { background:#EAE0CC; }
+    body.site-page label { color:var(--ink); font-family:"Plus Jakarta Sans",Arial,sans-serif; font-weight:500; }
+    body.site-page input, body.site-page select, body.site-page textarea { background:#8F9D7D; border:0; border-radius:10px; color:#fff; font-family:"Plus Jakarta Sans",Arial,sans-serif; }
+    body.site-page input::placeholder, body.site-page textarea::placeholder { color:rgba(255,255,255,.82); }
+    body.site-page input:focus, body.site-page select:focus, body.site-page textarea:focus { outline:3px solid #D7DEC9; border:0; }
+    body.site-page .message { border-radius:10px; background:#EAE0CC; color:var(--green-dark); }
+    .account-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+    .account-category { display:flex; min-height:220px; flex-direction:column; align-items:flex-start; justify-content:space-between; padding:24px; border-radius:12px; background:#EAE0CC; }
+    .account-category h2 { margin:0 0 8px; font-size:21px; }
+    .account-category p { margin:0; color:var(--muted); font-size:14px; }
+    .account-list { display:grid; max-width:850px; gap:14px; margin:0 auto; }
+    .account-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:22px 24px; border-radius:12px; background:#EAE0CC; }
+    .account-person { display:flex; align-items:center; gap:14px; }
+    .account-avatar { display:grid; width:46px; height:46px; place-items:center; border-radius:50%; background:#8F9D7D; color:#fff; font-weight:700; }
+    .account-username { margin:0; color:var(--ink); font-size:16px; font-weight:600; }
+    .account-detail-panel { max-width:760px; margin:0 auto; padding:30px; border-radius:12px; background:#EAE0CC; }
+    @media(max-width:850px) { .account-grid { grid-template-columns:1fr; } .account-category { min-height:170px; } }
+    @media(max-width:850px) { .request-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:600px) { body { padding:12px; } .card,.card.wide { min-height:calc(100vh - 40px); margin:8px auto; padding:23px 18px; border-radius:15px; } .topbar,.page-heading { align-items:flex-start; flex-direction:column; } .nav { justify-content:flex-start; } .request-grid { grid-template-columns:1fr; } .detail-list { grid-template-columns:1fr; gap:5px; } .detail-value { margin-bottom:10px; } }
   </style>
 </head>
-<body>
-  <div class="card">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="message {{ message.tags }}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
+<body class="{% block body_class %}{% endblock %}">
+  <main class="card {% block card_class %}{% endblock %}">
+    {% if messages %}{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
     {% block content %}{% endblock %}
-  </div>
+  </main>
 </body>
 </html>

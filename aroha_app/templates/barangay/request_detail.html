@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Request form - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Barangay staff</span></p></div>
+  <nav class="nav" aria-label="Main navigation">
+    <a class="btn secondary" href="{% url 'barangay_request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Back to requests</a>
+    {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% else %}<a class="btn secondary" href="{% url 'logout' %}">Exit</a>{% endif %}
+  </nav>
+</header>
+<div class="form-panel">
+  <div class="page-heading"><div><h1>Request form</h1><p class="subtitle">Review the request and choose a status.</p></div></div>
+  <section class="detail-list">
+    <span class="detail-label">Request type</span><p class="detail-value">{{ object.get_request_type_display }}</p>
+    <span class="detail-label">Requested by</span><p class="detail-value">{{ object.requested_by.username }}</p>
+    <span class="detail-label">Senior citizen name</span><p class="detail-value">{{ object.senior_name }}</p>
+    <span class="detail-label">Details</span><p class="detail-value">{{ object.details|linebreaksbr }}</p>
+    <span class="detail-label">Contact person</span><p class="detail-value">{{ object.contact_person }}</p>
+    <span class="detail-label">Date</span><p class="detail-value">{{ object.created_at|date:"Y-m-d H:i" }}</p>
+    <span class="detail-label">Status</span><p class="detail-value"><span class="status">{{ object.get_status_display }}</span></p>
+  </section>
+
+  <form method="post" style="margin-top:24px;max-width:360px">
+    {% csrf_token %}
+    <label for="id_status">Update status</label>
+    {{ form.status }}
+    <div class="form-actions" style="margin-top:20px;">
+      <a class="btn secondary" href="{% url 'barangay_request_list' %}">Cancel</a>
+      <button type="submit" class="btn">Save Status</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Request details - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar"><div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Volunteer</span></p></div><a class="btn secondary" href="{% url 'volunteer_list' %}">Back to list</a></header>
+<div class="form-panel">
+  <div class="page-heading"><div><h1>Request details</h1><p class="subtitle">Review the request and update its progress.</p></div>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}</div>
+  <section class="detail-list">
+    <span class="detail-label">Assistance type</span><p class="detail-value">{{ object.get_request_type_display }}</p>
+    <span class="detail-label">Senior citizen</span><p class="detail-value">{{ object.senior_name }}</p>
+    <span class="detail-label">Requested by</span><p class="detail-value">{{ object.requested_by.get_full_name|default:object.requested_by.username }}</p>
+    <span class="detail-label">Contact person</span><p class="detail-value">{{ object.contact_person }}{% if object.requested_by.phone_number %} · {{ object.requested_by.phone_number }}{% endif %}</p>
+    <span class="detail-label">Request details</span><p class="detail-value">{{ object.details|linebreaksbr }}</p>
+    <span class="detail-label">Date requested</span><p class="detail-value">{{ object.created_at|date:"M j, Y · g:i a" }}</p>
+    <span class="detail-label">Current status</span><p class="detail-value"><span class="status">{{ object.get_status_display }}</span></p>
+  </section>
+  {% if preview %}<div class="message" style="margin-top:24px">Preview mode: <a href="{% url 'login' %}">log in</a> or <a href="{% url 'signup' %}">sign up</a> as a volunteer to update requests.</div>{% else %}
+  <form method="post" style="margin-top:24px">{% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}<p><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</p>{% endfor %}
+    <div class="form-actions"><a class="btn secondary" href="{% url 'volunteer_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Cancel</a>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}<button type="submit">Save update</button></div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

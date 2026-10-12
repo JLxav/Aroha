@@ -123,9 +123,44 @@ from .models import HelpRequest
 
 @login_required
 def barangay_request_list(request):
-    """Displays all help requests for Barangay Staff review."""
-    requests = HelpRequest.objects.all().order_by("-created_at")
-    return render(request, "barangay/request_list.html", {"requests": requests})
+    """Displays filterable and sortable help requests for barangay staff."""
+    requests = HelpRequest.objects.all()
+
+    # 1. Capture filter parameters from URL
+    req_type = request.GET.get("request_type")
+    barangay = request.GET.get("barangay")
+    sort_order = request.GET.get("sort", "latest")
+
+    # 2. Apply stacked filters
+    if req_type:
+        requests = requests.filter(request_type=req_type)
+    if barangay:
+        requests = requests.filter(barangay__iexact=barangay)
+
+    # 3. Apply sorting
+    if sort_order == "earliest":
+        requests = requests.order_by("created_at")
+    else:
+        requests = requests.order_by("-created_at")
+
+    # 4. Get unique barangays for the dropdown menu dynamically
+    available_barangays = (
+        HelpRequest.objects.exclude(barangay__isnull=True)
+        .exclude(barangay="")
+        .values_list("barangay", flat=True)
+        .distinct()
+        .order_by("barangay")
+    )
+
+    context = {
+        "requests": requests,
+        "available_barangays": available_barangays,
+        "request_types": HelpRequest.RequestType.choices,  # Assuming choices exist on your model
+        "active_type": req_type,
+        "active_barangay": barangay,
+        "active_sort": sort_order,
+    }
+    return render(request, "barangay/request_list.html", context)
 
 
 @login_required
@@ -145,5 +180,38 @@ def barangay_request_detail(request, pk):
     return render(
         request,
         "barangay/request_detail.html",
+        {"object": help_request, "form": form},
+    )
+
+# ==========================================
+# Volunteer Views
+# ==========================================
+
+@login_required
+def volunteer_list(request):
+    """Displays open help requests available for volunteers to assist with."""
+    requests = HelpRequest.objects.filter(
+        status__in=[HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS]
+    ).order_by("-created_at")
+    return render(request, "volunteer/request_list.html", {"requests": requests})
+
+
+@login_required
+def volunteer_detail(request, pk):
+    """Displays request details and allows volunteers to update its progress."""
+    help_request = get_object_or_404(HelpRequest, pk=pk)
+
+    if request.method == "POST":
+        form = BarangayStatusForm(request.POST, instance=help_request)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Request progress updated successfully.")
+            return redirect("volunteer_list")
+    else:
+        form = BarangayStatusForm(instance=help_request)
+
+    return render(
+        request,
+        "volunteer/request_detail.html",
         {"object": help_request, "form": form},
     )

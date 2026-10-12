@@ -44,6 +44,10 @@ urlpatterns = [
     path("barangay/requests/", views.barangay_request_list, name="barangay_request_list"),
     path("barangay/requests/<int:pk>/", views.barangay_request_detail, name="barangay_request_detail"),
 
+    # Volunteer Views
+    path("volunteer/requests/", views.volunteer_list, name="volunteer_list"),
+    path("volunteer/requests/<int:pk>/", views.volunteer_detail, name="volunteer_detail"),
+
     # Profile View
     path("profile/<str:role>/", views.profile_preview, name="profile_preview"),
 ]

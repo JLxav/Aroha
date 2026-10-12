@@ -52,6 +52,7 @@ class HelpRequest(models.Model):
     )
     senior_name = models.CharField(max_length=150)
     contact_person = models.CharField(max_length=150)
+    location = models.CharField(max_length=255, blank=True, null=True)
     request_type = models.CharField(
         max_length=20,
         choices=RequestType.choices,

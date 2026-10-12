@@ -72,7 +72,7 @@ from .models import HelpRequest
 class HelpRequestForm(forms.ModelForm):
     class Meta:
         model = HelpRequest
-        fields = ["senior_name", "contact_person", "request_type", "details"]
+        fields = ["senior_name", "contact_person", "location", "request_type", "details"]
         labels = {
             "senior_name": "Senior Citizen's Name",
             "contact_person": "Contact Person / Mobile Number",

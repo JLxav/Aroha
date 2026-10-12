@@ -52,7 +52,19 @@ class HelpRequest(models.Model):
     )
     senior_name = models.CharField(max_length=150)
     contact_person = models.CharField(max_length=150)
-    location = models.CharField(max_length=255, blank=True, null=True)
+
+    #locationfileds
+    house_number = models.CharField(max_length=50, default="")
+    street = models.CharField(max_length=100, blank=True, null=True)
+    barangay = models.CharField(max_length=100, default="") # Adjust default as needed
+    city = models.CharField(max_length=100, default="Davao City")
+
+    @property
+    def full_location(self):
+        """Returns a nicely formatted full address string."""
+        street_part = f"{self.street}, " if self.street else ""
+        return f"{self.house_number} {street_part}{self.barangay}, {self.city}"
+    
     request_type = models.CharField(
         max_length=20,
         choices=RequestType.choices,

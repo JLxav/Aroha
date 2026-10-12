@@ -72,15 +72,21 @@ from .models import HelpRequest
 class HelpRequestForm(forms.ModelForm):
     class Meta:
         model = HelpRequest
-        fields = ["senior_name", "contact_person", "location", "request_type", "details"]
-        labels = {
-            "senior_name": "Senior Citizen's Name",
-            "contact_person": "Contact Person / Mobile Number",
-            "request_type": "Type of Assistance Needed",
-            "details": "Details / Notes",
-        }
+        fields = [
+            "request_type", 
+            "senior_name", 
+            "house_number", 
+            "street", 
+            "barangay", 
+            "city", 
+            "contact_person", 
+            "details"
+        ]
         widgets = {
-            "details": forms.Textarea(attrs={"placeholder": "Describe what assistance is needed..."}),
+            "house_number": forms.TextInput(attrs={"placeholder": "House/Block/Lot No."}),
+            "street": forms.TextInput(attrs={"placeholder": "Street name (optional)"}),
+            "barangay": forms.TextInput(attrs={"placeholder": "Barangay"}),
+            "city": forms.TextInput(attrs={"placeholder": "City / Municipality"}),
         }
 
 class BarangayStatusForm(forms.ModelForm):

@@ -2,13 +2,45 @@
 {% block title %}{% if object %}Edit request{% else %}New request{% endif %} - Aroha{% endblock %}
 {% block body_class %}site-page{% endblock %}
 {% block card_class %}wide{% endblock %}
+
 {% block content %}
+<style>
+  .location-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    margin-bottom: 16px;
+  }
+  .location-grid p {
+    margin: 0;
+  }
+  @media (max-width: 600px) {
+    .location-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
 <header class="topbar"><div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Family member</span></p></div><a class="btn secondary" href="{% url 'request_list' %}">Back to requests</a></header>
 <div class="form-panel">
   <div class="page-heading"><div><h1>{% if object %}Edit request{% else %}Make a request{% endif %}</h1><p class="subtitle">Tell us who needs help and what kind of assistance would be useful.</p></div></div>
   {% if preview %}<div class="message">Preview mode: <a href="{% url 'login' %}">log in</a> or <a href="{% url 'signup' %}">sign up</a> to save a request.</div>{% endif %}
   <form method="post">{% csrf_token %}{{ form.non_field_errors }}
-    {% for field in form %}<p><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</p>{% endfor %}
+    
+    <p><label for="{{ form.request_type.id_for_label }}">{{ form.request_type.label }}</label>{{ form.request_type }}{{ form.request_type.errors }}</p>
+    <p><label for="{{ form.senior_name.id_for_label }}">{{ form.senior_name.label }}</label>{{ form.senior_name }}{{ form.senior_name.errors }}</p>
+
+    <!-- Location Fields in Grid Layout -->
+    <div class="location-grid">
+      <p><label for="{{ form.house_number.id_for_label }}">{{ form.house_number.label }}</label>{{ form.house_number }}{{ form.house_number.errors }}</p>
+      <p><label for="{{ form.street.id_for_label }}">{{ form.street.label }}</label>{{ form.street }}{{ form.street.errors }}</p>
+      <p><label for="{{ form.barangay.id_for_label }}">{{ form.barangay.label }}</label>{{ form.barangay }}{{ form.barangay.errors }}</p>
+      <p><label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>{{ form.city }}{{ form.city.errors }}</p>
+    </div>
+
+    <p><label for="{{ form.contact_person.id_for_label }}">{{ form.contact_person.label }}</label>{{ form.contact_person }}{{ form.contact_person.errors }}</p>
+    <p><label for="{{ form.details.id_for_label }}">{{ form.details.label }}</label>{{ form.details }}{{ form.details.errors }}</p>
+
     <div class="form-actions"><a class="btn secondary" href="{% url 'request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Cancel</a>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}<button type="submit">{% if object %}Save changes{% else %}Send request{% endif %}</button></div>
   </form>
 </div>

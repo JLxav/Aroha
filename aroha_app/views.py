@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .forms import HelpRequestForm, SignUpForm
 from .models import HelpRequest
 
-
+#Joseth
 # ==========================================
 # Authentication & Access Views
 # ==========================================

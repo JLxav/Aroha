@@ -187,31 +187,86 @@ def barangay_request_detail(request, pk):
 # Volunteer Views
 # ==========================================
 
+
 @login_required
 def volunteer_list(request):
-    """Displays open help requests available for volunteers to assist with."""
-    requests = HelpRequest.objects.filter(
-        status__in=[HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS]
-    ).order_by("-created_at")
-    return render(request, "volunteer/request_list.html", {"requests": requests})
+  """Displays open help requests available for volunteers to assist with."""
+  # Get requests that need volunteer assistance
+  requests = HelpRequest.objects.filter(
+      status__in=[HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS]
+  )
+
+  # 1. Capture filter parameters from URL query string
+  req_type = request.GET.get('request_type')
+  barangay = request.GET.get('barangay')
+  status_filter = request.GET.get('status')
+
+  # 2. Apply stacked filters
+  if req_type:
+    requests = requests.filter(request_type=req_type)
+  if barangay:
+    requests = requests.filter(barangay__iexact=barangay)
+  if status_filter:
+    requests = requests.filter(status=status_filter)
+
+  requests = requests.order_by('-created_at')
+
+  # 3. Get unique barangays for filter dropdown
+  available_barangays = (
+      HelpRequest.objects.exclude(barangay__isnull=True)
+      .exclude(barangay='')
+      .values_list('barangay', flat=True)
+      .distinct()
+      .order_by('barangay')
+  )
+
+  context = {
+      'requests': requests,
+      'available_barangays': available_barangays,
+      'request_types': HelpRequest.RequestType.choices,
+      'status_choices': HelpRequest.Status.choices,
+      'active_type': req_type,
+      'active_barangay': barangay,
+      'active_status': status_filter,
+  }
+  return render(request, 'volunteer/request_list.html', context)
 
 
 @login_required
 def volunteer_detail(request, pk):
-    """Displays request details and allows volunteers to update its progress."""
+    """Displays request details. Volunteers can only view, not freely update status."""
     help_request = get_object_or_404(HelpRequest, pk=pk)
-
-    if request.method == "POST":
-        form = BarangayStatusForm(request.POST, instance=help_request)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Request progress updated successfully.")
-            return redirect("volunteer_list")
-    else:
-        form = BarangayStatusForm(instance=help_request)
-
+    
     return render(
         request,
         "volunteer/request_detail.html",
-        {"object": help_request, "form": form},
+        {"object": help_request},
     )
+
+
+@login_required
+def volunteer_claim_request(request, pk):
+    help_request = get_object_or_404(
+        HelpRequest, pk=pk, status=HelpRequest.Status.PENDING
+    )
+    if request.method == 'POST':
+        help_request.status = HelpRequest.Status.IN_PROGRESS
+        help_request.assigned_volunteer = request.user # <--- ADD THIS LINE
+        help_request.save()
+        messages.success(request, f'You have claimed the request for {help_request.senior_name}.')
+    return redirect('volunteer_detail', pk=help_request.pk)
+
+@login_required
+def volunteer_unclaim_request(request, pk):
+    help_request = get_object_or_404(
+        HelpRequest, 
+        pk=pk, 
+        status=HelpRequest.Status.IN_PROGRESS,
+        assigned_volunteer=request.user # Ensures only the volunteer who took it can drop it
+    )
+    if request.method == 'POST':
+        help_request.status = HelpRequest.Status.PENDING
+        help_request.assigned_volunteer = None
+        help_request.save()
+        messages.info(request, 'You have released the request back to the pending queue.')
+    return redirect('volunteer_list')

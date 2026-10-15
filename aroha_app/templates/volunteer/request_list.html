@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Volunteer requests - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+
+{% block content %}
+<style>
+  /* Filter Toolbar Styling */
+  .filter-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  
+  /* Reddit-style dropdown using details/summary */
+  .dropdown-filter {
+    position: relative;
+    display: inline-block;
+  }
+  .dropdown-filter summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 6px 12px;
+    background: #f1f3f5;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #ced4da;
+    user-select: none;
+  }
+  .dropdown-filter summary::-webkit-details-marker { display: none; }
+  .dropdown-filter[open] summary {
+    background: #e9ecef;
+    border-color: #adb5bd;
+  }
+  .dropdown-menu-box {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 6px 0;
+    min-width: 180px;
+    z-index: 100;
+  }
+  .dropdown-menu-box a {
+    display: block;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #212529;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .dropdown-menu-box a:hover {
+    background: #f8f9fa;
+    color: #0b5ed7;
+  }
+
+  /* Active Filter Pills Bar */
+  .active-filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e7f5ff;
+    color: #1c7ed6;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #74c0fc;
+  }
+  .filter-pill a {
+    color: #1c7ed6;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .clear-all-btn {
+    font-size: 12px;
+    color: #fa5252;
+    text-decoration: none;
+    margin-left: 4px;
+  }
+  .clear-all-btn:hover { text-decoration: underline; }
+</style>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Volunteer</span></p></div>
+  <nav class="nav" aria-label="Main navigation">
+    <a class="btn secondary" href="{% url 'volunteer_list' %}">Request list</a>
+    <a class="btn secondary" href="{% url 'profile_preview' 'volunteer' %}">Profile</a>
+    <a class="btn secondary" href="{% url 'login' %}">Exit</a>
+  </nav>
+</header>
+
+<section class="page-heading">
+  <div><h1>Volunteer Help Requests</h1><p class="subtitle">Browse available requests in your community and accept tasks to assist seniors.</p></div>
+</section>
+
+<!-- Filter Toolbar (Reddit-style dropdowns) -->
+<div class="filter-toolbar">
+  
+  <!-- 1. Request Type Dropdown -->
+  <details class="dropdown-filter">
+    <summary>Request Type ▾</summary>
+    <div class="dropdown-menu-box">
+      <a href="?{% if active_barangay %}barangay={{ active_barangay }}&{% endif %}{% if active_status %}status={{ active_status }}&{% endif %}sort=latest">All Types</a>
+      {% for code, label in request_types %}
+        <a href="?request_type={{ code }}{% if active_barangay %}&barangay={{ active_barangay }}{% endif %}{% if active_status %}&status={{ active_status }}{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </details>
+
+  <!-- 2. Barangay Dropdown -->
+  <details class="dropdown-filter">
+    <summary>Barangay ▾</summary>
+    <div class="dropdown-menu-box">
+      <a href="?{% if active_type %}request_type={{ active_type }}&{% endif %}{% if active_status %}status={{ active_status }}&{% endif %}">All Barangays</a>
+      {% for b_name in available_barangays %}
+        <a href="?{% if active_type %}request_type={{ active_type }}&{% endif %}barangay={{ b_name }}{% if active_status %}&status={{ active_status }}{% endif %}">{{ b_name }}</a>
+      {% endfor %}
+    </div>
+  </details>
+
+  <!-- 3. Status Dropdown -->
+  <details class="dropdown-filter">
+    <summary>Status ▾</summary>
+    <div class="dropdown-menu-box">
+      <a href="?{% if active_type %}request_type={{ active_type }}&{% endif %}{% if active_barangay %}barangay={{ active_barangay }}&{% endif %}">Pending & In Progress</a>
+      {% for code, label in status_choices %}
+        <a href="?status={{ code }}{% if active_type %}&request_type={{ active_type }}{% endif %}{% if active_barangay %}&barangay={{ active_barangay }}{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </details>
+
+</div>
+
+<!-- Active Filter Pills Bar -->
+{% if active_type or active_barangay or active_status %}
+<div class="active-filters-bar">
+  <span style="font-size: 13px; color: #6c757d;">Active filters:</span>
+  
+  {% if active_type %}
+    <span class="filter-pill">
+      Type: {{ active_type }} 
+      <a href="?{% if active_barangay %}barangay={{ active_barangay }}&{% endif %}{% if active_status %}status={{ active_status }}{% endif %}">×</a>
+    </span>
+  {% endif %}
+
+  {% if active_barangay %}
+    <span class="filter-pill">
+      Barangay: {{ active_barangay }} 
+      <a href="?{% if active_type %}request_type={{ active_type }}&{% endif %}{% if active_status %}status={{ active_status }}{% endif %}">×</a>
+    </span>
+  {% endif %}
+
+  {% if active_status %}
+    <span class="filter-pill">
+      Status: {{ active_status }} 
+      <a href="?{% if active_type %}request_type={{ active_type }}&{% endif %}{% if active_barangay %}barangay={{ active_barangay }}{% endif %}">×</a>
+    </span>
+  {% endif %}
+
+  <a class="clear-all-btn" href="{% url 'volunteer_list' %}">Clear all filters</a>
+</div>
+{% endif %}
+
+<!-- Request Grid -->
+<section class="request-grid">
+  {% for item in requests %}
+    <article class="request-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <h2>{{ item.get_request_type_display }}</h2>
+        <span class="status">{{ item.get_status_display }}</span>
+      </div>
+      <p><strong>Senior:</strong> {{ item.senior_name }}</p>
+      {% if item.full_location %}
+        <p><strong>Location:</strong> {{ item.full_location }}</p>
+      {% endif %}
+      <p><strong>Requested by:</strong> {{ item.requested_by.get_full_name|default:item.requested_by.username }}</p>
+      <p>{{ item.details|truncatechars:100 }}</p>
+      <div class="foot">
+        <span class="meta">{{ item.created_at|date:"M j, Y · g:i a" }}</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <a class="btn small secondary" href="{% url 'volunteer_detail' item.pk %}">View</a>
+          {% if item.status == 'pending' %}
+            <form action="{% url 'volunteer_claim_request' item.pk %}" method="POST" style="margin:0;">
+              {% csrf_token %}
+              <button type="submit" class="btn small">Accept</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  {% empty %}
+    <div class="empty-state">
+      <h2>No matching requests</h2>
+      <p>No active help requests match your filters right now. Check back soon!</p>
+    </div>
+  {% endfor %}
+</section>
+{% endblock %}

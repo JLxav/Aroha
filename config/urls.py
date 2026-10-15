@@ -45,8 +45,10 @@ urlpatterns = [
     path("barangay/requests/<int:pk>/", views.barangay_request_detail, name="barangay_request_detail"),
 
     # Volunteer Views
-    path("volunteer/requests/", views.volunteer_list, name="volunteer_list"),
-    path("volunteer/requests/<int:pk>/", views.volunteer_detail, name="volunteer_detail"),
+    path("volunteer/", views.volunteer_list, name="volunteer_list"),
+    path("volunteer/<int:pk>/", views.volunteer_detail, name="volunteer_detail"),
+    path("volunteer/<int:pk>/claim/", views.volunteer_claim_request, name="volunteer_claim_request"),
+    path("volunteer/<int:pk>/unclaim/", views.volunteer_unclaim_request, name="volunteer_unclaim_request"),
 
     # Profile View
     path("profile/<str:role>/", views.profile_preview, name="profile_preview"),

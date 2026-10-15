@@ -20,10 +20,24 @@
     <span class="detail-label">Senior citizen</span><p class="detail-value">{{ object.senior_name }}</p>
     <span class="detail-label">Location</span><p class="detail-value">{{ object.full_location|default:"Not specified" }}</p>
     <span class="detail-label">Requested by</span><p class="detail-value">{{ object.requested_by.get_full_name|default:object.requested_by.username }}</p>
-    <span class="detail-label">Contact person</span><p class="detail-value">{{ object.contact_person }}{% if object.requested_by.phone_number %} · {{ object.requested_by.phone_number }}{% endif %}</p>
+    <span class="detail-label">Contact person</span>
+        <p class="detail-value">
+          {{ object.contact_person }}
+          {% if object.requested_by.phone_number %}
+            · <a href="tel:{{ object.requested_by.phone_number }}" style="text-decoration: underline; color: var(--ink);">{{ object.requested_by.phone_number }}</a>
+          {% endif %}
+        </p>    
     <span class="detail-label">Request details</span><p class="detail-value">{{ object.details|linebreaksbr }}</p>
     <span class="detail-label">Date requested</span><p class="detail-value">{{ object.created_at|date:"M j, Y · g:i a" }}</p>
     <span class="detail-label">Current status</span><p class="detail-value"><span class="status">{{ object.get_status_display }}</span></p>
+    
+    <!-- New Assigned Volunteer Block -->
+    {% if object.assigned_volunteer %}
+    <span class="detail-label">Assigned volunteer</span>
+    <p class="detail-value" style="color: var(--green-dark); font-weight: 600;">
+      {{ object.assigned_volunteer.get_full_name|default:object.assigned_volunteer.username }}
+    </p>
+    {% endif %}
   </section>
 
   {% if preview %}

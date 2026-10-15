@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Request detail - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+
+{% block content %}
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Volunteer</span></p></div>
+  <a class="btn secondary" href="{% url 'volunteer_list' %}">Back to list</a>
+</header>
+
+<div class="form-panel">
+  <div class="page-heading">
+    <div><h1>Request details</h1><p class="subtitle">Review request info and accept tasks.</p></div>
+  </div>
+
+  <section class="detail-list">
+    <span class="detail-label">Assistance type</span><p class="detail-value">{{ object.get_request_type_display }}</p>
+    <span class="detail-label">Senior citizen</span><p class="detail-value">{{ object.senior_name }}</p>
+    <span class="detail-label">Location</span><p class="detail-value">{{ object.full_location|default:"Not specified" }}</p>
+    <span class="detail-label">Requested by</span><p class="detail-value">{{ object.requested_by.get_full_name|default:object.requested_by.username }}</p>
+    <span class="detail-label">Contact person</span>
+    <p class="detail-value">
+      {{ object.contact_person }}
+      {% if object.requested_by.phone_number %}
+         · <a href="tel:{{ object.requested_by.phone_number }}" style="text-decoration: underline; color: var(--ink);">{{ object.requested_by.phone_number }}</a>
+      {% endif %}
+    </p>
+    <span class="detail-label">Date requested</span><p class="detail-value">{{ object.created_at|date:"M j, Y · g:i a" }}</p>
+    <span class="detail-label">Current status</span><p class="detail-value"><span class="status">{{ object.get_status_display }}</span></p>
+  </section>
+
+  <!-- Volunteer Actions -->
+  <div style="margin-top:24px;">
+    {% if object.status == 'pending' %}
+      <form action="{% url 'volunteer_claim_request' object.pk %}" method="POST" style="max-width:360px;">
+        {% csrf_token %}
+        <button type="submit" class="btn">Accept Request</button>
+      </form>
+    {% elif object.status == 'in_progress' %}
+      <div class="message">
+        This request has been accepted and is currently in progress. Once you have finished assisting, a Barangay Staff member will officially mark this as completed.
+      </div>
+    {% if object.assigned_volunteer == request.user %}
+        <form action="{% url 'volunteer_unclaim_request' object.pk %}" method="POST" style="max-width:360px;">
+          {% csrf_token %}
+          <button type="submit" class="btn secondary">Cancel / Release Request</button>
+        </form>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

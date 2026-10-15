@@ -50,6 +50,13 @@ class HelpRequest(models.Model):
         on_delete=models.CASCADE,
         related_name="requests"
     )
+    assigned_volunteer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_requests"
+    )
     senior_name = models.CharField(max_length=150)
     contact_person = models.CharField(max_length=150)
 

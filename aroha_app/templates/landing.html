@@ -1,0 +1,110 @@
+{% extends "homepage.html" %}
+{% block title %}Homepage | Aroha{% endblock %}
+{% block body_class %}homepage{% endblock %}
+{% block card_class %}homepage-shell{% endblock %}
+{% block content %}
+<style>
+  body.homepage { --forest:#263f28; --leaf:#64815b; --sage:#dce8d1; --cream:#eee4d0; --paper:#f8f7f1; --text:#525b50; --border:#ece8df; margin:0; padding:0; background:var(--paper); color:var(--text); font-family:"Plus Jakarta Sans",Arial,sans-serif; }
+  body.homepage .homepage-shell { max-width:none; min-height:0; margin:0; padding:0; overflow:hidden; border:0; border-radius:0; background:var(--paper); box-shadow:none; }
+  .home-header { display:flex; align-items:center; justify-content:space-between; min-height:82px; padding:14px max(32px,calc((100% - 1536px)/2)); background:var(--cream); border-bottom:1px solid #e5dcc8; }
+  .home-brand { display:flex; align-items:center; gap:12px; color:var(--forest); }
+  .home-mark { display:grid; width:42px; height:42px; place-items:center; border-radius:15px; background:var(--forest) url("/static/aroha/images/aroha-logo.png?v=2") center/cover no-repeat; color:transparent; font-size:0; }
+  .home-brand strong { display:block; font:700 26px/1 Georgia,"Newsreader",serif; }
+  .home-brand small { display:block; margin-top:5px; color:var(--leaf); font-size:11px; font-weight:700; letter-spacing:.04em; }
+  .home-nav { display:flex; gap:12px; }
+  .home-nav .btn { min-width:86px; min-height:44px; border-radius:16px; }
+  .home-main { max-width:1536px; margin:0 auto; }
+  .hero { display:grid; grid-template-columns:1.25fr .9fr; align-items:center; gap:48px; padding:50px 32px 62px; }
+  .eyebrow { display:inline-flex; align-items:center; gap:9px; margin-bottom:14px; padding:7px 15px; border:1px solid #c8d8bd; border-radius:999px; background:var(--sage); color:var(--forest); font-size:12px; font-weight:700; }
+  .hero h1 { max-width:850px; margin:0 0 18px; color:var(--forest); font:700 clamp(38px,4vw,58px)/.98 "Newsreader",Georgia,serif; letter-spacing:-.035em; }
+  .hero h1 em { color:var(--leaf); font-weight:400; }
+  .hero-copy { max-width:720px; margin:0; font-size:19px; line-height:1.55; }
+  .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin:25px 0 26px; }
+  .hero-actions .btn { min-height:52px; padding:13px 22px; border-radius:16px; font-size:15px; }
+  .hero-actions .btn.secondary { background:#eee4d0; border-color:#e4dac5; }
+  .trust-row { display:flex; flex-wrap:wrap; gap:20px 28px; padding-top:16px; border-top:1px solid #e8e3d8; }
+  .trust-item { display:flex; align-items:center; gap:10px; font-size:12px; }
+  .trust-icon { display:grid; width:40px; height:40px; flex:none; place-items:center; border-radius:50%; background:var(--sage); color:var(--leaf); font-size:19px; }
+  .trust-item strong { display:block; color:var(--forest); font-size:13px; }
+  .trust-item span:last-child { color:#71776e; }
+  .hub-card { padding:28px; border:1px solid var(--border); border-radius:24px; background:#fff; box-shadow:0 18px 36px rgba(42,53,39,.13); }
+  .hub-head { display:flex; align-items:center; gap:12px; padding-bottom:17px; border-bottom:1px solid #efede7; }
+  .hub-head .home-mark { width:42px; height:42px; }
+  .hub-title small { color:var(--leaf); font-size:12px; font-weight:700; letter-spacing:.05em; }
+  .hub-title strong { display:block; color:var(--forest); font:700 20px Georgia,serif; }
+  .live-pill { margin-left:auto; padding:6px 12px; border-radius:99px; background:var(--sage); color:var(--forest); font-size:12px; font-weight:700; white-space:nowrap; }
+  .hub-row { display:flex; gap:14px; margin-top:14px; padding:15px; border:1px solid #e9e4da; border-radius:18px; background:#faf9f5; }
+  .hub-icon { color:var(--leaf); font-size:22px; }
+  .hub-row strong { display:block; color:var(--forest); font-size:14px; }
+  .hub-row p { margin:2px 0 0; font-size:12px; line-height:1.4; }
+  .hub-link { display:flex; justify-content:center; width:100%; margin-top:18px; }
+  .roles { padding:60px 32px 66px; background:#f3f1e6; text-align:center; }
+  .roles-kicker { margin:0 0 4px; color:var(--leaf); font-size:12px; font-weight:700; letter-spacing:.07em; }
+  .roles h2 { margin:0; color:var(--forest); font:700 clamp(30px,3vw,42px)/1.15 "Newsreader",Georgia,serif; }
+  .roles-intro { max-width:740px; margin:12px auto 40px; }
+  .role-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; text-align:left; }
+  .role-card { display:flex; min-height:440px; flex-direction:column; padding:28px; border:1px solid #ebe7df; border-radius:25px; background:white; box-shadow:0 2px 4px rgba(35,50,35,.04); }
+  .role-icon { display:grid; width:54px; height:54px; place-items:center; margin-bottom:12px; border-radius:16px; background:var(--forest); color:#dce8d1; font-size:23px; }
+  .role-label { margin:0 0 8px; color:var(--leaf); font-size:12px; font-weight:700; }
+  .role-card h3 { margin:0 0 14px; color:var(--forest); font:700 25px "Newsreader",Georgia,serif; }
+  .role-card p { margin:0 0 12px; font-size:14px; line-height:1.6; }
+  .role-points { margin:0; padding:10px 0 0; border-top:1px solid #efede7; list-style:none; }
+  .role-points li { margin:0 0 7px; font-size:12px; }
+  .role-points li::before { content:"✓"; display:inline-grid; width:17px; height:17px; place-items:center; margin-right:8px; border:1px solid #9cb28d; border-radius:50%; color:var(--leaf); font-weight:700; }
+  .role-tag { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:auto; padding:10px 13px; border-radius:12px; background:#f0ebdf; color:var(--forest); font-size:11px; }
+  .role-tag strong { color:var(--leaf); font-size:10px; }
+  .home-footer { padding:38px max(32px,calc((100% - 1536px)/2)) 0; background:var(--cream); color:#62685f; }
+  .footer-top { display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:35px; padding-bottom:28px; }
+  .footer-about { max-width:460px; }
+  .footer-brand { display:flex; align-items:center; gap:10px; margin-bottom:12px; color:var(--forest); font:700 23px Georgia,serif; }
+  .footer-brand .home-mark { width:36px; height:36px; border-radius:12px; font-size:0; }
+  .footer-about p { margin:0 0 12px; font-size:13px; line-height:1.65; }
+  .footer-phone { color:var(--forest); font-size:13px; font-weight:700; }
+  .footer-column strong { display:block; margin:3px 0 12px; color:var(--leaf); font-size:12px; }
+  .footer-column a { display:block; margin:0 0 9px; color:#62685f; font-size:13px; }
+  .footer-bottom { display:flex; justify-content:space-between; gap:16px; padding:15px 0; border-top:1px solid #e1d8c5; font-size:11px; }
+  .footer-legal { display:flex; flex-wrap:wrap; gap:16px; }
+  .footer-legal a { color:#62685f; }
+  @media(max-width:900px) { .hero { grid-template-columns:1fr; gap:30px; } .hub-card { max-width:650px; } .role-grid { grid-template-columns:1fr 1fr; } .footer-top { grid-template-columns:1fr 1fr; } }
+  @media(max-width:600px) { .home-header { padding:12px 18px; } .home-brand strong { font-size:22px; } .home-brand small { font-size:9px; } .home-nav { gap:7px; } .home-nav .btn { min-width:0; padding:8px 12px; font-size:12px; } .hero { padding:35px 18px 42px; } .hero-copy { font-size:16px; } .hero h1 { font-size:42px; } .hero-actions .btn { width:100%; } .hub-card { padding:18px; border-radius:18px; } .live-pill { font-size:10px; padding:5px 8px; } .roles { padding:45px 18px; } .role-grid { grid-template-columns:1fr; gap:14px; } .role-card { min-height:390px; padding:22px; } .footer-top { grid-template-columns:1fr 1fr; gap:24px 18px; } .footer-about { grid-column:1/-1; } .home-footer { padding:30px 18px 0; } .footer-bottom { flex-direction:column; } }
+</style>
+<header class="home-header">
+  <a class="home-brand" href="{% url 'homepage' %}" aria-label="Aroha Homepage"><span class="home-mark">A</span><span><strong>Aroha</strong><small>BARANGAY SENIOR CITIZEN CARE</small></span></a>
+  <nav class="home-nav" aria-label="Account navigation"><a class="btn secondary" href="{% url 'login' %}">Log In</a><a class="btn" href="{% url 'signup' %}">Sign Up</a></nav>
+</header>
+<main class="home-main">
+  <section class="hero">
+    <div>
+      <div class="eyebrow">▦ &nbsp; COMMUNITY SENIOR CITIZEN ASSISTANCE NETWORK</div>
+      <h1>Connecting families, barangay staff, and volunteers <em>to care for our seniors.</em></h1>
+      <p class="hero-copy">Aroha provides a unified, community-driven platform for Philippine barangays. Families request senior care and errands, barangay coordinators manage and assign assistance, and verified local volunteers step forward to help.</p>
+      <div class="hero-actions"><a class="btn" href="{% url 'signup' %}">⊕ &nbsp; Request Care for a Senior</a><a class="btn secondary" href="#volunteers">♡ &nbsp; Browse Volunteer Tasks</a></div>
+      <div class="trust-row"><div class="trust-item"><span class="trust-icon">♧</span><span><strong>Barangay-Verified Network</strong>Validated coordinators &amp; registered residents</span></div><div class="trust-item"><span class="trust-icon">⌖</span><span><strong>Street-Level Assistance</strong>Fast dispatch to senior households</span></div></div>
+    </div>
+    <aside class="hub-card" aria-label="Aroha community portal roles">
+      <div class="hub-head"><span class="home-mark">A</span><span class="hub-title"><small>COMMUNITY PORTAL</small><strong>Barangay Care Hub</strong></span><span class="live-pill">● &nbsp; Live Dispatch</span></div>
+      <div class="hub-row"><span class="hub-icon">♥</span><div><strong>Family Member Portal</strong><p>Submit elder requests with house no., street, barangay &amp; track progress.</p></div></div>
+      <div class="hub-row"><span class="hub-icon">♧</span><div><strong>Volunteer Network</strong><p>Filter requests by type &amp; barangay, accept tasks, and visit seniors.</p></div></div>
+      <div class="hub-row"><span class="hub-icon">◈</span><div><strong>Barangay Staff Dashboard</strong><p>Triage requests, assign volunteers, and update statuses in real-time.</p></div></div>
+      <a class="btn hub-link" href="{% url 'homepage' %}">Learn How the 3 Roles Coordinate &nbsp; ↓</a>
+    </aside>
+  </section>
+  <section class="roles" id="roles">
+    <p class="roles-kicker">THE AROHA SYSTEM</p><h2>Three Dedicated Roles, One Caring Barangay</h2><p class="roles-intro">Designed for Philippine local government communities to help ensure every senior citizen gets the support they need.</p>
+    <div class="role-grid">
+      <article class="role-card"><span class="role-icon">FA</span><p class="role-label">ROLE 01 • FAMILIES</p><h3>For Family Members</h3><p>Request daily assistance, medical runs, or companionship for your elder relatives. Include their address and monitor real-time updates.</p><ul class="role-points"><li>Submit requests with detailed address &amp; phone</li><li>Track status: Pending, In Progress, Completed</li><li>View request history and assigned volunteers</li></ul><div class="role-tag"><strong>● PORTAL ROLE</strong><span>Family Access &amp; Requests</span></div></article>
+      <article class="role-card" id="volunteers"><span class="role-icon">V</span><p class="role-label">ROLE 02 • VOLUNTEERS</p><h3>For Volunteers</h3><p>Support seniors right in your neighborhood. Browse open requests filtered by request type, barangay, and status, accept tasks, and coordinate with barangay staff.</p><ul class="role-points"><li>Browse requests by barangay &amp; category</li><li>Accept companionship or grocery errands</li><li>Access senior contact and visit details</li></ul><div class="role-tag"><strong>● VOLUNTEER WORKFLOW</strong><span>Feed &amp; Neighborhood Triage</span></div></article>
+      <article class="role-card"><span class="role-icon">BS</span><p class="role-label">ROLE 03 • BARANGAY STAFF</p><h3>For Barangay Staff</h3><p>The administrative command center for the barangay. Filter incoming requests by type, date, and sector, assign verified volunteers, and transition statuses.</p><ul class="role-points"><li>Filter by Request Type, Date, &amp; Barangay</li><li>Assign registered volunteers to pending tasks</li><li>Status control: Pending, In Progress, Completed</li></ul><div class="role-tag"><strong>● ADMINISTRATIVE HUB</strong><span>Dispatch Console &amp; Records</span></div></article>
+    </div>
+  </section>
+</main>
+<footer class="home-footer">
+  <div class="footer-top">
+    <div class="footer-about"><div class="footer-brand"><span class="home-mark">A</span>Aroha</div><p>Aroha provides compassionate community check-ins, errand assistance, prescription support, and family reassurance for seniors living proudly and independently in their barangay.</p><a class="footer-phone" href="tel:180055527642764">♧ &nbsp; Toll-Free 24/7: 1-800-555-AROHA (2764)</a></div>
+    <div class="footer-column"><strong>CARE PROGRAMS</strong><a href="{% url 'homepage' %}">Morning Check-Ins</a><a href="{% url 'homepage' %}">Medication Support</a><a href="{% url 'homepage' %}">Companion Visits</a><a href="{% url 'homepage' %}">Palengke &amp; Walking</a><a href="{% url 'homepage' %}">Senior Welfare</a></div>
+    <div class="footer-column"><strong>FOR FAMILIES</strong><a href="{% url 'login' %}">Family Portal</a><a href="{% url 'homepage' %}">How We Match</a><a href="{% url 'homepage' %}">Volunteer Vetting</a><a href="{% url 'signup' %}">Request Help</a><a href="{% url 'homepage' %}">Emergency Protocols</a></div>
+    <div class="footer-column"><strong>CARE SUPPORT</strong><a href="{% url 'homepage' %}">Help Center</a><a href="{% url 'signup' %}">Request Consultation</a><a href="{% url 'signup' %}">Become a Volunteer</a><a href="{% url 'login' %}">Barangay LGU Desk</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 Aroha Barangay Senior Citizen Assistance. All rights reserved.</span><span class="footer-legal"><a href="#">Accessibility Statement</a><a href="#">Data Privacy Notice</a><a href="#">Terms of Community Care</a></span></div>
+</footer>
+{% endblock %}

@@ -5,7 +5,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .forms import HelpRequestForm, SignUpForm
 from .models import HelpRequest
 
-#Joseth
+
+def homepage(request):
+    """Render the public Aroha landing page."""
+    return render(request, "landing.html")
+
+
 # ==========================================
 # Authentication & Access Views
 # ==========================================

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,6 +12,9 @@
     :root { --ink:#283a2c; --muted:#758174; --green:#4f7255; --green-dark:#38563e; --green-pale:#e8efe5; --paper:#f3f3ed; --white:#fff; --line:#e1e7dc; --shadow:0 14px 38px rgba(40,58,44,.08); }
     * { box-sizing:border-box; }
     body { margin:0; min-height:100vh; padding:32px 20px; background:var(--paper); color:var(--ink); font:16px/1.55 Arial,Helvetica,sans-serif; }
+    body.auth-page { position:relative; isolation:isolate; display:grid; min-height:100vh; place-items:center; padding:32px 20px; overflow-x:hidden; background:transparent; }
+    body.auth-page::before { position:fixed; z-index:0; inset:0; content:""; background:linear-gradient(135deg,rgba(238,228,208,.42),rgba(73,94,66,.24)),url("{% static 'aroha/images/oldpeople.jpg' %}") center/cover no-repeat; filter:blur(2px); transform:scale(1.015); }
+    body.auth-page > .card { position:relative; z-index:1; width:min(100%,460px); max-width:460px; margin:0; padding:0; border:0; background:transparent; box-shadow:none; }
     .card { width:100%; max-width:520px; margin:30px auto; padding:36px; background:var(--white); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); }
     .card.wide { max-width:1440px; min-height:calc(100vh - 64px); padding:36px 42px; }
     h1,h2,h3,p { margin-top:0; }
@@ -21,7 +25,7 @@
     a:hover { text-decoration:underline; }
     .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:30px; }
     .brand { display:flex; align-items:center; gap:12px; }
-    .brand-mark { display:grid; width:42px; height:42px; place-items:center; border-radius:14px; background:var(--green-pale); color:var(--green-dark); font-size:21px; font-weight:700; }
+    .brand-mark { display:grid; width:42px; height:42px; place-items:center; border-radius:14px; background:var(--green-dark) url("/static/aroha/images/aroha-logo.png?v=2") center/cover no-repeat; color:transparent; font-size:0; font-weight:700; }
     .brand-name { margin:0; font-size:18px; }
     .nav { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:9px; }
     .btn, button { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:10px 16px; border:1px solid transparent; border-radius:10px; background:var(--green); color:white; font:600 14px Arial, sans-serif; cursor:pointer; text-decoration:none; transition:background .15s, transform .15s; }
@@ -60,7 +64,7 @@
     body.site-page h1 { font-family:"Newsreader",Georgia,serif; font-weight:400; }
     body.site-page .subtitle, body.site-page .meta { color:#667064; }
     body.site-page .brand-name { color:var(--green); }
-    body.site-page .brand-mark { border-radius:10px; background:var(--green-dark); color:#fff; }
+    body.site-page .brand-mark { border-radius:10px; background:var(--green-dark) url("/static/aroha/images/aroha-logo.png?v=2") center/cover no-repeat; color:transparent; }
     body.site-page .request-card { background:var(--green-pale); border-color:transparent; border-radius:10px; box-shadow:none; }
     body.site-page .empty-state, body.site-page .detail-list { background:var(--green-pale); border-color:transparent; border-radius:10px; }
     body.site-page .status { background:#E5E9DE; color:var(--green-dark); }

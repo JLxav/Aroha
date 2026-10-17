@@ -17,12 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
+from django.views.generic.base import RedirectView
 
 from aroha_app import views
 from aroha_app.forms import ApprovedAuthenticationForm
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", RedirectView.as_view(pattern_name="homepage", permanent=False), name="home"),
+    path("Aroha/", views.homepage, name="homepage"),
     path(
         "login/",
         auth_views.LoginView.as_view(authentication_form=ApprovedAuthenticationForm),

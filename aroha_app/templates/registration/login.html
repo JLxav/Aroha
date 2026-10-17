@@ -1,14 +1,18 @@
-{% extends "base.html" %}
+{% extends "homepage.html" %}
 {% block title %}Log in - Aroha{% endblock %}
+{% block body_class %}auth-page{% endblock %}
 
 {% block content %}
 <style>
   .login-container {
-    background-color: #e5dfd3; 
+    background-color: rgba(238, 228, 208, .92);
+    border: 1px solid rgba(255, 255, 255, .55);
+    box-shadow: 0 18px 50px rgba(36, 54, 38, .2);
+    backdrop-filter: blur(8px);
     padding: 48px 40px;
     border-radius: 12px;
     max-width: 420px;
-    margin: 60px auto; 
+    margin: 0 auto;
     box-sizing: border-box;
     font-family: Arial, sans-serif;
   }
@@ -106,7 +110,8 @@
 
   <!-- Added the "No account yet? Sign up" text and link below the button -->
   <div class="login-footer">
-    No account yet? <a href="{% url 'signup' %}">Sign up</a>
+    No account yet? <a href="{% url 'signup' %}">Sign up</a><br>
+    <a href="{% url 'homepage' %}">← Back to Homepage</a>
   </div>
 </div>
 {% endblock %}

@@ -13,12 +13,13 @@ class User(AbstractUser):
         ADMIN = "admin", "Admin"
         STAFF = "staff", "Barangay Staff"
         VOLUNTEER = "volunteer", "Volunteer"
-        REQUESTER = "requester", "Family Member / Caregiver"
+        REQUESTER = "requester", "Family Member"
  
     # first_name and last_name already come from AbstractUser
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.REQUESTER)
     phone_number = models.CharField(max_length=20, blank=True, validators=[phone_validator])
     is_approved = models.BooleanField(default=False)
+    is_rejected = models.BooleanField(default=False)
  
     def save(self, *args, **kwargs):
         if self.is_superuser:
@@ -83,6 +84,9 @@ class HelpRequest(models.Model):
         choices=Status.choices,
         default=Status.PENDING
     )
+    rejection_reason = models.TextField(blank=True)
+    volunteer_rating = models.PositiveSmallIntegerField(null=True, blank=True)
+    volunteer_feedback = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

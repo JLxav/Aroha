@@ -40,15 +40,23 @@ urlpatterns = [
     # Requester Views
     path("requests/", views.request_list, name="request_list"),
     path("requests/history/", views.request_history, name="request_history"),
+    path("requests/<int:pk>/feedback/", views.submit_volunteer_feedback, name="submit_volunteer_feedback"),
     path("requests/new/", views.request_create, name="request_create"),
     path("requests/<int:pk>/edit/", views.request_edit, name="request_edit"),
+    path("requests/<int:pk>/delete/", views.request_delete, name="request_delete"),
+    path("requests/<int:pk>/complete/", views.request_mark_complete, name="request_mark_complete"),
 
     # Barangay Staff Views
     path("barangay/requests/", views.barangay_request_list, name="barangay_request_list"),
+    path("barangay/ratings/", views.barangay_ratings, name="barangay_ratings"),
+    path("barangay/approvals/", views.barangay_pending_accounts, name="barangay_pending_accounts"),
+    path("barangay/approvals/<int:pk>/approve/", views.barangay_approve_account, name="barangay_approve_account"),
+    path("barangay/approvals/<int:pk>/reject/", views.barangay_reject_account, name="barangay_reject_account"),
     path("barangay/requests/<int:pk>/", views.barangay_request_detail, name="barangay_request_detail"),
 
     # Volunteer Views
     path("volunteer/", views.volunteer_list, name="volunteer_list"),
+    path("volunteer/history/", views.volunteer_history, name="volunteer_history"),
     path("volunteer/<int:pk>/", views.volunteer_detail, name="volunteer_detail"),
     path("volunteer/<int:pk>/claim/", views.volunteer_claim_request, name="volunteer_claim_request"),
     path("volunteer/<int:pk>/unclaim/", views.volunteer_unclaim_request, name="volunteer_unclaim_request"),

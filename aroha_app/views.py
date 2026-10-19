@@ -1,8 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import HelpRequestForm, SignUpForm
+from .forms import HelpRequestForm, SignUpForm, VolunteerFeedbackForm
 from .models import HelpRequest
 
 
@@ -67,6 +69,25 @@ def request_history(request):
 
 
 @login_required
+def submit_volunteer_feedback(request, pk):
+    help_request = get_object_or_404(
+        HelpRequest,
+        pk=pk,
+        requester=request.user,
+        status=HelpRequest.Status.COMPLETED,
+    )
+    if not help_request.assigned_volunteer:
+        messages.error(request, "This request has no assigned volunteer to evaluate.")
+        return redirect("request_history")
+    if request.method == "POST":
+        form = VolunteerFeedbackForm(request.POST, instance=help_request)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your volunteer feedback has been saved.")
+    return redirect("request_history")
+
+
+@login_required
 def request_create(request):
     """Handles creating a new help request."""
     if request.method == "POST":
@@ -87,9 +108,9 @@ def request_edit(request, pk):
     """Handles editing an existing pending request."""
     help_request = get_object_or_404(HelpRequest, pk=pk, requester=request.user)
 
-    # Prevent editing requests that are already in progress, completed, or rejected
-    if help_request.status != HelpRequest.Status.PENDING:
-        messages.error(request, "You can only edit pending requests.")
+    # Completed and rejected requests are read-only.
+    if help_request.status not in [HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS]:
+        messages.error(request, "You can only edit pending or in-progress requests.")
         return redirect("request_list")
 
     if request.method == "POST":
@@ -104,6 +125,40 @@ def request_edit(request, pk):
     return render(
         request, "requester/request_form.html", {"form": form, "object": help_request}
     )
+
+
+@login_required
+def request_delete(request, pk):
+    """Allow a family member to delete their own pending request."""
+    help_request = get_object_or_404(
+        HelpRequest,
+        pk=pk,
+        requester=request.user,
+        status__in=[HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS],
+    )
+    if request.method == "POST":
+        help_request.delete()
+        messages.success(request, "Your request was deleted.")
+    return redirect("request_list")
+
+
+@login_required
+def request_mark_complete(request, pk):
+    """Let the family member confirm that an in-progress request is complete."""
+    help_request = get_object_or_404(
+        HelpRequest,
+        pk=pk,
+        requester=request.user,
+        status__in=[HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS],
+    )
+    if request.method == "POST":
+        help_request.status = HelpRequest.Status.COMPLETED
+        help_request.save(update_fields=["status", "updated_at"])
+        if help_request.assigned_volunteer:
+            messages.success(request, "Request marked as completed. You can rate your volunteer in request history.")
+        else:
+            messages.success(request, "Request marked as completed.")
+    return redirect("request_list")
 
 @login_required
 def profile_preview(request, role="family-member"):
@@ -169,6 +224,96 @@ def barangay_request_list(request):
 
 
 @login_required
+def barangay_ratings(request):
+    """Show completed requests and volunteer ratings to barangay staff."""
+    if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
+        messages.error(request, "You do not have permission to view ratings.")
+        return redirect("dashboard_redirect")
+    User = get_user_model()
+    completed = HelpRequest.objects.filter(status=HelpRequest.Status.COMPLETED).select_related(
+        "requester", "assigned_volunteer"
+    )
+    account = request.GET.get("account", "")
+    if account.startswith("volunteer:"):
+        account_id = account.partition(":")[2]
+        if account_id.isdigit():
+            completed = completed.filter(assigned_volunteer_id=int(account_id))
+        else:
+            account = ""
+    else:
+        account = ""
+
+    volunteer_ids = HelpRequest.objects.filter(
+        status=HelpRequest.Status.COMPLETED, assigned_volunteer__isnull=False
+    ).values_list("assigned_volunteer_id", flat=True).distinct()
+    volunteer_accounts = User.objects.filter(pk__in=volunteer_ids).order_by("first_name", "last_name", "username")
+
+    return render(request, "barangay/ratings.html", {
+        "requests": completed.order_by("-updated_at"),
+        "volunteer_accounts": volunteer_accounts,
+        "active_account": account,
+    })
+
+
+@login_required
+def barangay_pending_accounts(request):
+    """List family member and volunteer accounts awaiting approval."""
+    if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
+        messages.error(request, "You do not have permission to approve accounts.")
+        return redirect("dashboard_redirect")
+    User = get_user_model()
+    pending_users = User.objects.filter(
+        is_approved=False,
+        is_rejected=False,
+        role__in=["requester", "volunteer"],
+    ).order_by("date_joined")
+    return render(request, "barangay/approvals.html", {"pending_users": pending_users})
+
+
+@login_required
+def barangay_approve_account(request, pk):
+    """Approve a pending family member or volunteer account."""
+    if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
+        messages.error(request, "You do not have permission to approve accounts.")
+        return redirect("dashboard_redirect")
+    User = get_user_model()
+    pending_user = get_object_or_404(
+        User,
+        pk=pk,
+        is_approved=False,
+        is_rejected=False,
+        role__in=["requester", "volunteer"],
+    )
+    if request.method == "POST":
+        pending_user.is_approved = True
+        pending_user.save(update_fields=["is_approved"])
+        messages.success(request, f"{pending_user.get_full_name() or pending_user.username} has been approved.")
+    return redirect("barangay_pending_accounts")
+
+
+@login_required
+def barangay_reject_account(request, pk):
+    """Mark a pending family member or volunteer account as rejected."""
+    if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
+        messages.error(request, "You do not have permission to reject accounts.")
+        return redirect("dashboard_redirect")
+    User = get_user_model()
+    pending_user = get_object_or_404(
+        User,
+        pk=pk,
+        is_approved=False,
+        is_rejected=False,
+        role__in=["requester", "volunteer"],
+    )
+    if request.method == "POST":
+        account_name = pending_user.get_full_name() or pending_user.username
+        pending_user.is_rejected = True
+        pending_user.save(update_fields=["is_rejected"])
+        messages.success(request, f"{account_name}'s account has been rejected. The account record was kept.")
+    return redirect("barangay_pending_accounts")
+
+
+@login_required
 def barangay_request_detail(request, pk):
     """View details of a single request and update its status."""
     help_request = get_object_or_404(HelpRequest, pk=pk)
@@ -176,6 +321,8 @@ def barangay_request_detail(request, pk):
     if request.method == "POST":
         form = BarangayStatusForm(request.POST, instance=help_request)
         if form.is_valid():
+            if form.cleaned_data["status"] != HelpRequest.Status.REJECTED:
+                form.instance.rejection_reason = ""
             form.save()
             messages.success(request, "Request status updated successfully.")
             return redirect("barangay_request_list")
@@ -235,6 +382,16 @@ def volunteer_list(request):
       'active_status': status_filter,
   }
   return render(request, 'volunteer/request_list.html', context)
+
+
+@login_required
+def volunteer_history(request):
+    """Show a volunteer's completed or rejected assignments without family feedback."""
+    requests = HelpRequest.objects.filter(
+        assigned_volunteer=request.user,
+        status__in=[HelpRequest.Status.COMPLETED, HelpRequest.Status.REJECTED],
+    ).select_related("requester").order_by("-updated_at")
+    return render(request, "volunteer/request_history.html", {"requests": requests})
 
 
 @login_required

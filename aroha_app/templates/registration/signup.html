@@ -27,6 +27,18 @@
     margin-bottom: 32px;
   }
 
+  .approval-note {
+    margin: -14px 0 24px;
+    padding: 12px 14px;
+    border: 1px solid rgba(74, 99, 73, .2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .38);
+    color: #3b4653;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
   .signup-container label {
     display: block;
     color: #3b4653;
@@ -111,6 +123,7 @@
 
 <div class="signup-container">
   <h1>Create an Aroha account</h1>
+  <p class="approval-note">After signing up, a barangay administrator must approve your account before you can log in.</p>
   
   <form method="post">
     {% csrf_token %}

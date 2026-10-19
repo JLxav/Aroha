@@ -39,7 +39,7 @@
       </form>
     {% elif object.status == 'in_progress' %}
       <div class="message">
-        This request has been accepted and is currently in progress. Once you have finished assisting, a Barangay Staff member will officially mark this as completed.
+        This request has been accepted and is currently in progress. After the assistance is finished, the family member or Barangay Staff can mark it as completed.
       </div>
     {% if object.assigned_volunteer == request.user %}
         <form action="{% url 'volunteer_unclaim_request' object.pk %}" method="POST" style="max-width:360px;">

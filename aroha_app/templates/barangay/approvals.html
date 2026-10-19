@@ -1,0 +1,44 @@
+{% extends "homepage.html" %}
+{% block title %}Account approvals - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Barangay staff</span></p></div>
+  <nav class="nav" aria-label="Main navigation">
+    <a class="btn secondary" href="{% url 'barangay_request_list' %}">Request list</a>
+    <a class="btn secondary" href="{% url 'barangay_ratings' %}">Ratings</a>
+    <a class="btn secondary" href="{% url 'profile_preview' 'staff' %}">Profile</a>
+  </nav>
+</header>
+
+<section class="page-heading">
+  <div><h1>Account approvals</h1><p class="subtitle">Review new family member and volunteer accounts before they can log in.</p></div>
+</section>
+
+<section class="request-grid">
+  {% for pending_user in pending_users %}
+    <article class="request-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <h2>{{ pending_user.get_full_name|default:pending_user.username }}</h2>
+        <span class="status">{{ pending_user.get_role_display }}</span>
+      </div>
+      <p><strong>Username:</strong> {{ pending_user.username }}</p>
+      {% if pending_user.phone_number %}<p><strong>Contact:</strong> {{ pending_user.phone_number }}</p>{% endif %}
+      <div class="foot">
+        <span class="meta">Signed up {{ pending_user.date_joined|date:"M j, Y · g:i a" }}</span>
+        <div style="display:flex;gap:8px">
+          <form method="post" action="{% url 'barangay_approve_account' pending_user.pk %}" style="margin:0" onsubmit="return confirm('Approve this account?');">
+            {% csrf_token %}<button type="submit" class="btn small">Approve</button>
+          </form>
+          <form method="post" action="{% url 'barangay_reject_account' pending_user.pk %}" style="margin:0" onsubmit="return confirm('Reject this account? It will not be able to log in.');">
+            {% csrf_token %}<button type="submit" class="btn small" style="background:#994d40">Reject</button>
+          </form>
+        </div>
+      </div>
+    </article>
+  {% empty %}
+    <div class="empty-state"><h2>No accounts awaiting approval</h2><p>New family member and volunteer sign-ups will appear here.</p></div>
+  {% endfor %}
+</section>
+{% endblock %}

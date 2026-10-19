@@ -7,7 +7,7 @@
   <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· {{ role_label }}</span></p></div>
   <nav class="nav" aria-label="Main navigation">
     <a class="btn secondary" href="{% if account_type == 'volunteer' %}{% url 'volunteer_list' %}{% elif account_type == 'family-member' %}{% url 'request_list' %}{% else %}{% url 'barangay_request_list' %}{% endif %}{% if admin_preview %}?from_admin=1{% endif %}">Dashboard</a>
-    {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% else %}<a class="btn" href="{% url 'login' %}">Sign out</a>{% endif %}
+    {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}
   </nav>
 </header>
 <div class="form-panel">

@@ -1,0 +1,58 @@
+{% extends "homepage.html" %}
+{% block title %}Completed request ratings - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Barangay staff</span></p></div>
+  <nav class="nav" aria-label="Main navigation">
+    <a class="btn secondary" href="{% url 'barangay_request_list' %}">Request list</a>
+    <a class="btn secondary" href="{% url 'barangay_pending_accounts' %}">Approval</a>
+    <a class="btn secondary" href="{% url 'profile_preview' 'staff' %}">Profile</a>
+  </nav>
+</header>
+
+<section class="page-heading">
+  <div><h1>Completed requests &amp; ratings</h1><p class="subtitle">Review completed assistance and family feedback about volunteers.</p></div>
+</section>
+
+<form method="get" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+  <label for="account-filter" style="margin:0">Filter by volunteer</label>
+  <select id="account-filter" name="account" style="width:min(100%,380px)" onchange="this.form.submit()">
+    <option value="">All completed requests</option>
+    <optgroup label="Volunteers">
+      {% for account in volunteer_accounts %}
+        <option value="volunteer:{{ account.pk }}" {% if active_account == 'volunteer:'|add:account.pk|stringformat:'s' %}selected{% endif %}>{{ account.get_full_name|default:account.username }}</option>
+      {% endfor %}
+    </optgroup>
+  </select>
+  <noscript><button type="submit" class="btn small">Filter</button></noscript>
+  {% if active_account %}<a class="btn secondary small" href="{% url 'barangay_ratings' %}">Clear filter</a>{% endif %}
+</form>
+
+<section class="request-grid">
+  {% for item in requests %}
+    <article class="request-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <h2>{{ item.get_request_type_display }}</h2><span class="status completed">Completed</span>
+      </div>
+      <p><strong>Senior:</strong> {{ item.senior_name }}</p>
+      <p><strong>Family member:</strong> {{ item.requester.get_full_name|default:item.requester.username }}</p>
+      <p><strong>Volunteer:</strong> {% if item.assigned_volunteer %}{{ item.assigned_volunteer.get_full_name|default:item.assigned_volunteer.username }}{% else %}Not assigned{% endif %}</p>
+      <p>{{ item.details|truncatechars:120 }}</p>
+      {% if item.volunteer_rating %}
+        <p><strong>Family rating:</strong> {{ item.volunteer_rating }}/5</p>
+        {% if item.volunteer_feedback %}<p><strong>Feedback:</strong> {{ item.volunteer_feedback|linebreaksbr }}</p>{% endif %}
+      {% else %}
+        <p class="meta">No family rating submitted.</p>
+      {% endif %}
+      <div class="foot">
+        <span class="meta">{{ item.updated_at|date:"M j, Y · g:i a" }}</span>
+        <a class="btn small" href="{% url 'barangay_request_detail' item.pk %}">View request</a>
+      </div>
+    </article>
+  {% empty %}
+    <div class="empty-state"><h2>No completed requests found</h2><p>Try another account filter, or check back when requests have been completed.</p></div>
+  {% endfor %}
+</section>
+{% endblock %}

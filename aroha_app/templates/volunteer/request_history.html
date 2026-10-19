@@ -1,0 +1,38 @@
+{% extends "homepage.html" %}
+{% block title %}Volunteer request history - Aroha{% endblock %}
+{% block body_class %}site-page{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Volunteer</span></p></div>
+  <nav class="nav" aria-label="Main navigation">
+    <a class="btn secondary" href="{% url 'volunteer_list' %}">Request list</a>
+    <a class="btn secondary" href="{% url 'profile_preview' 'volunteer' %}">Profile</a>
+  </nav>
+</header>
+
+<section class="page-heading">
+  <div><h1>Request history</h1><p class="subtitle">Completed and rejected requests assigned to you.</p></div>
+</section>
+
+<section class="request-grid">
+  {% for item in requests %}
+    <article class="request-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <h2>{{ item.get_request_type_display }}</h2>
+        <span class="status {% if item.status == 'rejected' %}rejected{% else %}completed{% endif %}">{{ item.get_status_display }}</span>
+      </div>
+      <p><strong>Senior:</strong> {{ item.senior_name }}</p>
+      <p><strong>Family member:</strong> {{ item.requester.get_full_name|default:item.requester.username }}</p>
+      <p><strong>Location:</strong> {{ item.full_location }}</p>
+      <p>{{ item.details|truncatechars:120 }}</p>
+      <div class="foot">
+        <span class="meta">{{ item.updated_at|date:"M j, Y · g:i a" }}</span>
+        <a class="btn small" href="{% url 'volunteer_detail' item.pk %}">View request</a>
+      </div>
+    </article>
+  {% empty %}
+    <div class="empty-state"><h2>No request history yet</h2><p>Completed or rejected assignments will appear here.</p></div>
+  {% endfor %}
+</section>
+{% endblock %}

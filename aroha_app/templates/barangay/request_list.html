@@ -99,8 +99,10 @@
   <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Barangay staff</span></p></div>
   <nav class="nav" aria-label="Main navigation">
     <a class="btn secondary" href="{% url 'barangay_request_list' %}">Request list</a>
+    <a class="btn secondary" href="{% url 'barangay_ratings' %}">Ratings</a>
+    <a class="btn secondary" href="{% url 'barangay_pending_accounts' %}">Approval</a>
     <a class="btn secondary" href="{% url 'profile_preview' 'staff' %}{% if admin_preview %}?from_admin=1{% endif %}">Profile</a>
-    {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% else %}<a class="btn secondary" href="{% url 'login' %}">Exit</a>{% endif %}
+    {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% else %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="btn secondary">Sign out</button></form>{% endif %}
   </nav>
 </header>
 

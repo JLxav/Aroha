@@ -30,6 +30,7 @@
     <span class="detail-label">Request details</span><p class="detail-value">{{ object.details|linebreaksbr }}</p>
     <span class="detail-label">Date requested</span><p class="detail-value">{{ object.created_at|date:"M j, Y · g:i a" }}</p>
     <span class="detail-label">Current status</span><p class="detail-value"><span class="status">{{ object.get_status_display }}</span></p>
+    {% if object.rejection_reason %}<span class="detail-label">Rejection reason</span><p class="detail-value">{{ object.rejection_reason|linebreaksbr }}</p>{% endif %}
     
     <!-- New Assigned Volunteer Block -->
     {% if object.assigned_volunteer %}
@@ -48,6 +49,9 @@
       <label for="{{ form.status.id_for_label }}">Update status</label>
       {{ form.status }}
       {{ form.status.errors }}
+      <label for="{{ form.rejection_reason.id_for_label }}" style="margin-top:16px">Reason for rejection (required when rejecting)</label>
+      {{ form.rejection_reason }}
+      {{ form.rejection_reason.errors }}
       <div class="form-actions" style="margin-top:20px;">
         <a class="btn secondary" href="{% url 'barangay_request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Cancel</a>
         <button type="submit" class="btn">Save Status</button>

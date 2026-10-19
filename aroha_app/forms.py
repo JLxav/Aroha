@@ -50,6 +50,7 @@ class SignUpForm(forms.ModelForm):
         user.set_password(self.cleaned_data["password"])
         user.role = self.cleaned_data["role"]
         user.is_approved = False
+        user.is_rejected = False
         if commit:
             user.save()
         return user
@@ -60,6 +61,11 @@ class ApprovedAuthenticationForm(AuthenticationForm):
  
     def confirm_login_allowed(self, user):
         super().confirm_login_allowed(user)
+        if user.is_rejected:
+            raise forms.ValidationError(
+                "This account was not approved. Please contact your barangay administrator.",
+                code="account_rejected",
+            )
         if not user.is_approved:
             raise forms.ValidationError(
                 "Your account is still waiting for admin approval.",
@@ -90,9 +96,40 @@ class HelpRequestForm(forms.ModelForm):
         }
 
 class BarangayStatusForm(forms.ModelForm):
+    rejection_reason = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 3, "placeholder": "Explain why this request is being rejected"}),
+    )
+
     class Meta:
         model = HelpRequest
-        fields = ["status"]
+        fields = ["status", "rejection_reason"]
         widgets = {
             "status": forms.Select(attrs={"class": "status-select"}),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("status") == HelpRequest.Status.REJECTED and not cleaned.get("rejection_reason", "").strip():
+            self.add_error("rejection_reason", "Please provide a reason for rejecting this request.")
+        return cleaned
+
+
+class VolunteerFeedbackForm(forms.ModelForm):
+    class Meta:
+        model = HelpRequest
+        fields = ["volunteer_rating", "volunteer_feedback"]
+        labels = {
+            "volunteer_rating": "How was your experience with the volunteer?",
+            "volunteer_feedback": "Additional comments",
+        }
+        widgets = {
+            "volunteer_rating": forms.Select(choices=[("", "Select a rating"), (1, "1 - Poor"), (2, "2 - Fair"), (3, "3 - Good"), (4, "4 - Very good"), (5, "5 - Excellent")]),
+            "volunteer_feedback": forms.Textarea(attrs={"rows": 3, "placeholder": "Share more about your experience (optional)"}),
+        }
+
+    def clean_volunteer_rating(self):
+        rating = self.cleaned_data["volunteer_rating"]
+        if rating is None or not 1 <= rating <= 5:
+            raise forms.ValidationError("Choose a rating from 1 to 5.")
+        return rating

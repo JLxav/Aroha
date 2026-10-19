@@ -5,7 +5,7 @@
 {% block content %}
 <header class="topbar">
   <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Family member</span></p></div>
-  <nav class="nav" aria-label="Main navigation"><a class="btn secondary" href="{% url 'request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Back to requests</a>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% else %}<a class="btn secondary" href="{% url 'login' %}">Log in</a>{% endif %}</nav>
+  <nav class="nav" aria-label="Main navigation"><a class="btn secondary" href="{% url 'request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Back to requests</a>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}</nav>
 </header>
 <section class="page-heading"><div><h1>Request history</h1><p class="subtitle">Completed and rejected requests appear here.</p></div></section>
 <section class="request-grid">
@@ -13,6 +13,20 @@
     <article class="request-card">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px"><h2>{{ item.get_request_type_display }}</h2><span class="status {% if item.status == 'rejected' %}rejected{% else %}completed{% endif %}">{{ item.get_status_display }}</span></div>
       <p><strong>Senior:</strong> {{ item.senior_name }}</p><p><strong>Contact person:</strong> {{ item.contact_person }}</p><p>{{ item.details|truncatechars:120 }}</p>
+      {% if item.status == 'rejected' and item.rejection_reason %}<p><strong>Reason:</strong> {{ item.rejection_reason }}</p>{% endif %}
+      {% if item.status == 'completed' and item.assigned_volunteer %}
+        <p><strong>Volunteer:</strong> {{ item.assigned_volunteer.get_full_name|default:item.assigned_volunteer.username }}</p>
+        {% if item.volunteer_rating %}<p><strong>Your rating:</strong> {{ item.volunteer_rating }}/5{% if item.volunteer_feedback %} · {{ item.volunteer_feedback }}{% endif %}</p>{% else %}
+          <form method="post" action="{% url 'submit_volunteer_feedback' item.pk %}" style="margin-top:14px">
+            {% csrf_token %}
+            <label for="id_volunteer_rating_{{ item.pk }}">Rate your experience (1–5)</label>
+            <select name="volunteer_rating" id="id_volunteer_rating_{{ item.pk }}" required><option value="">Select a rating</option><option value="1">1 - Poor</option><option value="2">2 - Fair</option><option value="3">3 - Good</option><option value="4">4 - Very good</option><option value="5">5 - Excellent</option></select>
+            <label for="id_volunteer_feedback_{{ item.pk }}" style="margin-top:10px">Additional comments (optional)</label>
+            <textarea name="volunteer_feedback" id="id_volunteer_feedback_{{ item.pk }}" rows="3" placeholder="Share more about your experience"></textarea>
+            <button type="submit" class="btn small" style="margin-top:10px">Submit feedback</button>
+          </form>
+        {% endif %}
+      {% endif %}
       <div class="foot"><span class="meta">{{ item.created_at|date:"M j, Y · g:i a" }}</span></div>
     </article>
   {% empty %}<div class="empty-state"><h2>No history yet</h2><p>Completed or rejected requests will be listed here.</p></div>{% endfor %}

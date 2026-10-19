@@ -99,8 +99,9 @@
   <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Volunteer</span></p></div>
   <nav class="nav" aria-label="Main navigation">
     <a class="btn secondary" href="{% url 'volunteer_list' %}">Request list</a>
+    <a class="btn secondary" href="{% url 'volunteer_history' %}">Request history</a>
     <a class="btn secondary" href="{% url 'profile_preview' 'volunteer' %}">Profile</a>
-    <a class="btn secondary" href="{% url 'login' %}">Exit</a>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="btn secondary">Sign out</button></form>
   </nav>
 </header>
 

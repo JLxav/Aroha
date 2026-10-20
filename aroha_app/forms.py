@@ -13,28 +13,33 @@ class SignUpForm(forms.ModelForm):
         (User.Role.VOLUNTEER, "Volunteer"),
         (User.Role.REQUESTER, "Requester"),
     ]
- 
+    
+    email = forms.EmailField(
+        required=True,  # Mandatory for registration & OTP
+        widget=forms.EmailInput(attrs={'placeholder': 'name@example.com', 'class': 'form-control'})
+    )
+    
     role = forms.ChoiceField(choices=ROLE_CHOICES, label="I am a")
     password = forms.CharField(widget=forms.PasswordInput, label="Password")
     confirm_password = forms.CharField(widget=forms.PasswordInput, label="Confirm password")
- 
+
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "username", "phone_number"]
+        fields = ["first_name", "last_name", "username", "email", "phone_number"]
         labels = {"phone_number": "Contact number"}
- 
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["first_name"].required = True
         self.fields["last_name"].required = True
         self.fields["phone_number"].required = True
         self.fields["phone_number"].widget.attrs["placeholder"] = "09171234567"
- 
+
     def clean(self):
         cleaned = super().clean()
         password = cleaned.get("password")
         confirm = cleaned.get("confirm_password")
- 
+
         if password and confirm and password != confirm:
             self.add_error("confirm_password", "Passwords do not match.")
         elif password:
@@ -44,7 +49,7 @@ class SignUpForm(forms.ModelForm):
             except forms.ValidationError as e:
                 self.add_error("password", e)
         return cleaned
- 
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
@@ -133,3 +138,4 @@ class VolunteerFeedbackForm(forms.ModelForm):
         if rating is None or not 1 <= rating <= 5:
             raise forms.ValidationError("Choose a rating from 1 to 5.")
         return rating
+    

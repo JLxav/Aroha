@@ -20,20 +20,17 @@ from django.urls import path
 from django.views.generic.base import RedirectView
 
 from aroha_app import views
-from aroha_app.forms import ApprovedAuthenticationForm
+
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("admin-control/", admin.site.urls),
     path("", RedirectView.as_view(pattern_name="homepage", permanent=False), name="home"),
     path("Aroha/", views.homepage, name="homepage"),
-    path(
-        "login/",
-        auth_views.LoginView.as_view(authentication_form=ApprovedAuthenticationForm),
-        name="login",
-    ),
+    path("login/", views.CustomLoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("signup/", views.signup, name="signup"),
-
+    path("verify-otp/", views.verify_otp_view, name="verify_otp"),
+    
     # Role Dispatcher
     path("dashboard/", views.dashboard_redirect, name="dashboard_redirect"),
 
@@ -63,4 +60,8 @@ urlpatterns = [
 
     # Profile View
     path("profile/<str:role>/", views.profile_preview, name="profile_preview"),
+
+    # Custom Admin Panel Routes
+    path('admin/', views.admin_panel, name='admin_panel'),
+    path('admin/accounts/<str:role>/', views.admin_user_list, name='admin_user_list'),
 ]

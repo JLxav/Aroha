@@ -1,0 +1,136 @@
+{% extends "homepage.html" %}
+{% block title %}Verify Security Code - Aroha{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<style>
+  .login-container {
+    background-color: rgba(238, 228, 208, .92);
+    border: 1px solid rgba(255, 255, 255, .55);
+    box-shadow: 0 18px 50px rgba(36, 54, 38, .2);
+    backdrop-filter: blur(8px);
+    padding: 48px 40px;
+    border-radius: 12px;
+    max-width: 420px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+  }
+
+  .login-container h1 {
+    color: #4a6349; 
+    text-align: center;
+    font-family: Georgia, serif; 
+    font-size: 26px;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+
+  .login-subtitle {
+    color: #3b4653;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 28px;
+    line-height: 1.4;
+  }
+
+  .login-container label {
+    display: block;
+    color: #3b4653; 
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+
+  .login-container input[type="text"] {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 24px;
+    background-color: #899a7a; 
+    border: none; 
+    border-radius: 8px;
+    box-sizing: border-box;
+    color: #ffffff; 
+    font-size: 20px;
+    letter-spacing: 4px;
+    text-align: center;
+  }
+
+  .login-container input:focus {
+    outline: 2px solid #2a4026; 
+  }
+
+  .login-container button {
+    width: 100%;
+    padding: 14px;
+    background-color: #2a4026; 
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .login-container button:hover {
+    background-color: #1a2917; 
+  }
+
+  .error-message {
+    color: #b00020;
+    font-size: 14px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .login-footer {
+    margin-top: 24px;
+    font-size: 14px;
+    color: #3b4653;
+    text-align: center;
+  }
+
+  .login-footer a {
+    color: #4a6349;
+    text-decoration: underline;
+  }
+
+  .login-footer a:hover {
+    font-weight: bold;
+  }
+</style>
+
+<div class="login-container">
+  <h1>Two-Factor Verification</h1>
+  <p class="login-subtitle">We sent a 6-digit verification code to your email address. Please enter it below.</p>
+
+  {% if messages %}
+    {% for message in messages %}
+      <p class="error-message">{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    
+    <label for="otp_code">Verification Code</label>
+    <input 
+      type="text" 
+      id="otp_code" 
+      name="otp_code" 
+      placeholder="123456" 
+      maxlength="6" 
+      required 
+      autofocus
+      autocomplete="off"
+    >
+    
+    <button type="submit">Verify & Log in</button>
+  </form>
+
+  <div class="login-footer">
+    Didn't receive code or made a mistake? <br>
+    <a href="{% url 'login' %}">← Back to Login</a>
+  </div>
+</div>
+{% endblock %}

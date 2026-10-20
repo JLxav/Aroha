@@ -1,11 +1,22 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
-
+from django.http import HttpResponseForbidden
+from .models import User
 from .forms import HelpRequestForm, SignUpForm, VolunteerFeedbackForm
 from .models import HelpRequest
+import random
+from django.contrib.auth.views import LoginView
+from django.core.mail import send_mail
+from django.shortcuts import redirect
+from .forms import ApprovedAuthenticationForm
+from .forms import BarangayStatusForm, HelpRequestForm, SignUpForm
+from .models import HelpRequest
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth import login
+from .models import User
 
 
 def homepage(request):
@@ -16,6 +27,64 @@ def homepage(request):
 # ==========================================
 # Authentication & Access Views
 # ==========================================
+
+class CustomLoginView(LoginView):
+    authentication_form = ApprovedAuthenticationForm
+
+    def form_valid(self, form):
+        user = form.get_user()
+        
+        # Check if user activated OTP in profile or is a superuser
+        if user.is_otp_enabled or user.is_superuser:
+            otp_code = str(random.randint(100000, 999999))
+            
+            # Store temporary authentication state in session
+            self.request.session['pre_otp_user_id'] = user.id
+            self.request.session['admin_otp'] = otp_code
+            
+            # Send verification email
+            send_mail(
+                subject='Aroha Security Verification Code',
+                message=f'Your login verification code is: {otp_code}',
+                from_email='noreply@aroha.com',
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            return redirect('verify_otp')
+
+        # Proceed with normal login if OTP is OFF
+        return super().form_valid(form)
+
+def verify_otp_view(request):
+    user_id = request.session.get('pre_otp_user_id')
+    stored_otp = request.session.get('admin_otp')
+    # If someone tries to access this page directly without logging in first
+    if not user_id or not stored_otp:
+        return redirect('login')
+
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp_code', '').strip()
+
+        if entered_otp == str(stored_otp):
+            # Code matches! Clear OTP session data and log the user in
+            user = User.objects.get(id=user_id)
+            login(request, user)
+            
+            del request.session['pre_otp_user_id']
+            del request.session['admin_otp']
+
+            # Redirect based on role or to home page
+            if user.role == User.Role.VOLUNTEER:
+                return redirect('volunteer_list')
+            elif user.role == User.Role.REQUESTER:
+                return redirect('request_list')
+            elif user.is_staff or user.is_superuser:
+                return redirect('barangay_request_list')
+            return redirect('homepage')
+        else:
+            messages.error(request, 'Invalid verification code. Please try again.')
+
+    return render(request, 'registration/verify_otp.html')
 
 def signup(request):
     """Handles user registration for volunteers and requesters."""
@@ -36,11 +105,11 @@ def dashboard_redirect(request):
     if user.role == user.Role.REQUESTER:
         return redirect("request_list")
     elif user.role == user.Role.STAFF:
-        return redirect("barangay_request_list") # Redirects staff straight to request_list_2.html
+        return redirect("barangay_request_list")
     elif user.role == user.Role.VOLUNTEER:
         return redirect("volunteer_list")
     elif user.role == user.Role.ADMIN or user.is_superuser:
-        return redirect("admin_dashboard")
+        return redirect("admin_panel")
 
     return redirect("request_list")
 
@@ -163,19 +232,25 @@ def request_mark_complete(request, pk):
 @login_required
 def profile_preview(request, role="family-member"):
     user = request.user
-    
-    # Map role parameter or actual user role
+
+    if request.method == "POST":
+        # Checkbox sends 'on' if checked, or key is missing if unchecked
+        user.is_otp_enabled = "is_otp_enabled" in request.POST
+        user.save()
+        return redirect("profile_preview", role=role)
+
     context = {
         "account_type": role,
         "role_label": "Family member" if role == "family-member" else role.capitalize(),
         "display_name": user.get_full_name() or user.username,
         "username": user.username,
+        "email": user.email or "Not provided",
         "phone_number": getattr(user, "phone_number", "Not provided"),
+        "is_otp_enabled": user.is_otp_enabled,
     }
     return render(request, "profile_preview.html", context)
 
-from .forms import BarangayStatusForm, HelpRequestForm, SignUpForm
-from .models import HelpRequest
+
 
 # ==========================================
 # Barangay Staff Views
@@ -432,3 +507,40 @@ def volunteer_unclaim_request(request, pk):
         help_request.save()
         messages.info(request, 'You have released the request back to the pending queue.')
     return redirect('volunteer_list')
+
+
+# ==========================================
+# Admin Views
+# ==========================================
+@login_required
+def admin_panel(request):
+    # Ensure only Admins or Superusers can access this view
+    if request.user.role != User.Role.ADMIN and not request.user.is_superuser:
+        return HttpResponseForbidden("You are not authorized to view this page.")
+
+    return render(request, 'admin/admin_panel.html')
+
+
+@login_required
+def admin_user_list(request, role):
+    # Ensure only Admins or Superusers can access this view
+    if request.user.role != User.Role.ADMIN and not request.user.is_superuser:
+        return HttpResponseForbidden("You are not authorized to view this page.")
+
+    # Standardize role display title for the template
+    role_titles = {
+        'staff': 'Barangay Staff Accounts',
+        'volunteer': 'Volunteer Accounts',
+        'requester': 'Family Member Accounts',
+    }
+
+    # Fetch users belonging to the requested role
+    users = User.objects.filter(role=role)
+    title = role_titles.get(role, 'User Accounts')
+
+    context = {
+        'users': users,
+        'role': role,
+        'page_title': title,
+    }
+    return render(request, 'admin_panel/admin_user_list.html', context)

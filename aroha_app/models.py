@@ -20,6 +20,8 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=20, blank=True, validators=[phone_validator])
     is_approved = models.BooleanField(default=False)
     is_rejected = models.BooleanField(default=False)
+    email = models.EmailField(blank=True, null=True)
+    is_otp_enabled = models.BooleanField(default=False)
  
     def save(self, *args, **kwargs):
         if self.is_superuser:
@@ -64,7 +66,7 @@ class HelpRequest(models.Model):
     #locationfileds
     house_number = models.CharField(max_length=50, default="")
     street = models.CharField(max_length=100, blank=True, null=True)
-    barangay = models.CharField(max_length=100, default="") # Adjust default as needed
+    barangay = models.CharField(max_length=100, default="")
     city = models.CharField(max_length=100, default="Davao City")
 
     @property

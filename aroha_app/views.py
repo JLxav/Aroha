@@ -1,32 +1,31 @@
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404, redirect, render
-from django.http import HttpResponseForbidden
-from .models import User
-from .forms import HelpRequestForm, SignUpForm, VolunteerFeedbackForm
-from .models import HelpRequest
 import random
+
+from django.contrib import messages
+from django.contrib.auth import get_user_model, login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
-from django.shortcuts import redirect
-from .forms import ApprovedAuthenticationForm
-from .forms import BarangayStatusForm, HelpRequestForm, SignUpForm
-from .models import HelpRequest
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth import login
-from .models import User
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
 
+from .forms import (
+    ApprovedAuthenticationForm,
+    BarangayStatusForm,
+    HelpRequestForm,
+    SignUpForm,
+    VolunteerFeedbackForm,
+)
+from .models import HelpRequest, User
+
+
+# ==========================================
+# Shared, Core & Authentication Views
+# ==========================================
 
 def homepage(request):
     """Render the public Aroha landing page."""
     return render(request, "landing.html")
 
-
-# ==========================================
-# Authentication & Access Views
-# ==========================================
 
 class CustomLoginView(LoginView):
     authentication_form = ApprovedAuthenticationForm
@@ -55,10 +54,12 @@ class CustomLoginView(LoginView):
         # Proceed with normal login if OTP is OFF
         return super().form_valid(form)
 
+
 def verify_otp_view(request):
     user_id = request.session.get('pre_otp_user_id')
     stored_otp = request.session.get('admin_otp')
-    # If someone tries to access this page directly without logging in first
+
+    # Direct access block without prior credentials validation
     if not user_id or not stored_otp:
         return redirect('login')
 
@@ -66,14 +67,12 @@ def verify_otp_view(request):
         entered_otp = request.POST.get('otp_code', '').strip()
 
         if entered_otp == str(stored_otp):
-            # Code matches! Clear OTP session data and log the user in
             user = User.objects.get(id=user_id)
             login(request, user)
             
             del request.session['pre_otp_user_id']
             del request.session['admin_otp']
 
-            # Redirect based on role or to home page
             if user.role == User.Role.VOLUNTEER:
                 return redirect('volunteer_list')
             elif user.role == User.Role.REQUESTER:
@@ -85,6 +84,7 @@ def verify_otp_view(request):
             messages.error(request, 'Invalid verification code. Please try again.')
 
     return render(request, 'registration/verify_otp.html')
+
 
 def signup(request):
     """Handles user registration for volunteers and requesters."""
@@ -112,6 +112,28 @@ def dashboard_redirect(request):
         return redirect("admin_panel")
 
     return redirect("request_list")
+
+
+@login_required
+def profile_preview(request, role="family-member"):
+    user = request.user
+
+    if request.method == "POST":
+        user.is_otp_enabled = "is_otp_enabled" in request.POST
+        user.save()
+        return redirect("profile_preview", role=role)
+
+    context = {
+        "account_type": role,
+        "role_label": "Family member" if role == "family-member" else role.capitalize(),
+        "display_name": user.get_full_name() or user.username,
+        "username": user.username,
+        "email": user.email or "Not provided",
+        "phone_number": getattr(user, "phone_number", "Not provided"),
+        "is_otp_enabled": user.is_otp_enabled,
+    }
+    return render(request, "profile_preview.html", context)
+
 
 # ==========================================
 # Requester Views
@@ -174,10 +196,9 @@ def request_create(request):
 
 @login_required
 def request_edit(request, pk):
-    """Handles editing an existing pending request."""
+    """Handles editing an existing pending or in-progress request."""
     help_request = get_object_or_404(HelpRequest, pk=pk, requester=request.user)
 
-    # Completed and rejected requests are read-only.
     if help_request.status not in [HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS]:
         messages.error(request, "You can only edit pending or in-progress requests.")
         return redirect("request_list")
@@ -198,7 +219,7 @@ def request_edit(request, pk):
 
 @login_required
 def request_delete(request, pk):
-    """Allow a family member to delete their own pending request."""
+    """Allow a family member to delete their own request."""
     help_request = get_object_or_404(
         HelpRequest,
         pk=pk,
@@ -229,28 +250,6 @@ def request_mark_complete(request, pk):
             messages.success(request, "Request marked as completed.")
     return redirect("request_list")
 
-@login_required
-def profile_preview(request, role="family-member"):
-    user = request.user
-
-    if request.method == "POST":
-        # Checkbox sends 'on' if checked, or key is missing if unchecked
-        user.is_otp_enabled = "is_otp_enabled" in request.POST
-        user.save()
-        return redirect("profile_preview", role=role)
-
-    context = {
-        "account_type": role,
-        "role_label": "Family member" if role == "family-member" else role.capitalize(),
-        "display_name": user.get_full_name() or user.username,
-        "username": user.username,
-        "email": user.email or "Not provided",
-        "phone_number": getattr(user, "phone_number", "Not provided"),
-        "is_otp_enabled": user.is_otp_enabled,
-    }
-    return render(request, "profile_preview.html", context)
-
-
 
 # ==========================================
 # Barangay Staff Views
@@ -261,24 +260,20 @@ def barangay_request_list(request):
     """Displays filterable and sortable help requests for barangay staff."""
     requests = HelpRequest.objects.all()
 
-    # 1. Capture filter parameters from URL
     req_type = request.GET.get("request_type")
     barangay = request.GET.get("barangay")
     sort_order = request.GET.get("sort", "latest")
 
-    # 2. Apply stacked filters
     if req_type:
         requests = requests.filter(request_type=req_type)
     if barangay:
         requests = requests.filter(barangay__iexact=barangay)
 
-    # 3. Apply sorting
     if sort_order == "earliest":
         requests = requests.order_by("created_at")
     else:
         requests = requests.order_by("-created_at")
 
-    # 4. Get unique barangays for the dropdown menu dynamically
     available_barangays = (
         HelpRequest.objects.exclude(barangay__isnull=True)
         .exclude(barangay="")
@@ -290,7 +285,7 @@ def barangay_request_list(request):
     context = {
         "requests": requests,
         "available_barangays": available_barangays,
-        "request_types": HelpRequest.RequestType.choices,  # Assuming choices exist on your model
+        "request_types": HelpRequest.RequestType.choices,
         "active_type": req_type,
         "active_barangay": barangay,
         "active_sort": sort_order,
@@ -304,7 +299,7 @@ def barangay_ratings(request):
     if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
         messages.error(request, "You do not have permission to view ratings.")
         return redirect("dashboard_redirect")
-    User = get_user_model()
+
     completed = HelpRequest.objects.filter(status=HelpRequest.Status.COMPLETED).select_related(
         "requester", "assigned_volunteer"
     )
@@ -321,7 +316,9 @@ def barangay_ratings(request):
     volunteer_ids = HelpRequest.objects.filter(
         status=HelpRequest.Status.COMPLETED, assigned_volunteer__isnull=False
     ).values_list("assigned_volunteer_id", flat=True).distinct()
-    volunteer_accounts = User.objects.filter(pk__in=volunteer_ids).order_by("first_name", "last_name", "username")
+    
+    UserModel = get_user_model()
+    volunteer_accounts = UserModel.objects.filter(pk__in=volunteer_ids).order_by("first_name", "last_name", "username")
 
     return render(request, "barangay/ratings.html", {
         "requests": completed.order_by("-updated_at"),
@@ -336,8 +333,9 @@ def barangay_pending_accounts(request):
     if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
         messages.error(request, "You do not have permission to approve accounts.")
         return redirect("dashboard_redirect")
-    User = get_user_model()
-    pending_users = User.objects.filter(
+
+    UserModel = get_user_model()
+    pending_users = UserModel.objects.filter(
         is_approved=False,
         is_rejected=False,
         role__in=["requester", "volunteer"],
@@ -351,9 +349,10 @@ def barangay_approve_account(request, pk):
     if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
         messages.error(request, "You do not have permission to approve accounts.")
         return redirect("dashboard_redirect")
-    User = get_user_model()
+
+    UserModel = get_user_model()
     pending_user = get_object_or_404(
-        User,
+        UserModel,
         pk=pk,
         is_approved=False,
         is_rejected=False,
@@ -372,9 +371,10 @@ def barangay_reject_account(request, pk):
     if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
         messages.error(request, "You do not have permission to reject accounts.")
         return redirect("dashboard_redirect")
-    User = get_user_model()
+
+    UserModel = get_user_model()
     pending_user = get_object_or_404(
-        User,
+        UserModel,
         pk=pk,
         is_approved=False,
         is_rejected=False,
@@ -410,53 +410,49 @@ def barangay_request_detail(request, pk):
         {"object": help_request, "form": form},
     )
 
+
 # ==========================================
 # Volunteer Views
 # ==========================================
 
-
 @login_required
 def volunteer_list(request):
-  """Displays open help requests available for volunteers to assist with."""
-  # Get requests that need volunteer assistance
-  requests = HelpRequest.objects.filter(
-      status__in=[HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS]
-  )
+    """Displays open help requests available for volunteers to assist with."""
+    requests = HelpRequest.objects.filter(
+        status__in=[HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS]
+    )
 
-  # 1. Capture filter parameters from URL query string
-  req_type = request.GET.get('request_type')
-  barangay = request.GET.get('barangay')
-  status_filter = request.GET.get('status')
+    req_type = request.GET.get('request_type')
+    barangay = request.GET.get('barangay')
+    status_filter = request.GET.get('status')
 
-  # 2. Apply stacked filters
-  if req_type:
-    requests = requests.filter(request_type=req_type)
-  if barangay:
-    requests = requests.filter(barangay__iexact=barangay)
-  if status_filter:
-    requests = requests.filter(status=status_filter)
+    if req_type:
+        requests = requests.filter(request_type=req_type)
+    if barangay:
+        requests = requests.filter(barangay__iexact=barangay)
+    if status_filter:
+        requests = requests.filter(status=status_filter)
 
-  requests = requests.order_by('-created_at')
+    requests = requests.order_by('-created_at')
 
-  # 3. Get unique barangays for filter dropdown
-  available_barangays = (
-      HelpRequest.objects.exclude(barangay__isnull=True)
-      .exclude(barangay='')
-      .values_list('barangay', flat=True)
-      .distinct()
-      .order_by('barangay')
-  )
+    available_barangays = (
+        HelpRequest.objects.exclude(barangay__isnull=True)
+        .exclude(barangay='')
+        .values_list('barangay', flat=True)
+        .distinct()
+        .order_by('barangay')
+    )
 
-  context = {
-      'requests': requests,
-      'available_barangays': available_barangays,
-      'request_types': HelpRequest.RequestType.choices,
-      'status_choices': HelpRequest.Status.choices,
-      'active_type': req_type,
-      'active_barangay': barangay,
-      'active_status': status_filter,
-  }
-  return render(request, 'volunteer/request_list.html', context)
+    context = {
+        'requests': requests,
+        'available_barangays': available_barangays,
+        'request_types': HelpRequest.RequestType.choices,
+        'status_choices': HelpRequest.Status.choices,
+        'active_type': req_type,
+        'active_barangay': barangay,
+        'active_status': status_filter,
+    }
+    return render(request, 'volunteer/request_list.html', context)
 
 
 @login_required
@@ -471,9 +467,8 @@ def volunteer_history(request):
 
 @login_required
 def volunteer_detail(request, pk):
-    """Displays request details. Volunteers can only view, not freely update status."""
+    """Displays request details for volunteers."""
     help_request = get_object_or_404(HelpRequest, pk=pk)
-    
     return render(
         request,
         "volunteer/request_detail.html",
@@ -488,18 +483,19 @@ def volunteer_claim_request(request, pk):
     )
     if request.method == 'POST':
         help_request.status = HelpRequest.Status.IN_PROGRESS
-        help_request.assigned_volunteer = request.user # <--- ADD THIS LINE
+        help_request.assigned_volunteer = request.user
         help_request.save()
         messages.success(request, f'You have claimed the request for {help_request.senior_name}.')
     return redirect('volunteer_detail', pk=help_request.pk)
 
+
 @login_required
 def volunteer_unclaim_request(request, pk):
     help_request = get_object_or_404(
-        HelpRequest, 
-        pk=pk, 
+        HelpRequest,
+        pk=pk,
         status=HelpRequest.Status.IN_PROGRESS,
-        assigned_volunteer=request.user # Ensures only the volunteer who took it can drop it
+        assigned_volunteer=request.user
     )
     if request.method == 'POST':
         help_request.status = HelpRequest.Status.PENDING
@@ -512,9 +508,9 @@ def volunteer_unclaim_request(request, pk):
 # ==========================================
 # Admin Views
 # ==========================================
+
 @login_required
 def admin_panel(request):
-    # Ensure only Admins or Superusers can access this view
     if request.user.role != User.Role.ADMIN and not request.user.is_superuser:
         return HttpResponseForbidden("You are not authorized to view this page.")
 
@@ -523,18 +519,15 @@ def admin_panel(request):
 
 @login_required
 def admin_user_list(request, role):
-    # Ensure only Admins or Superusers can access this view
     if request.user.role != User.Role.ADMIN and not request.user.is_superuser:
         return HttpResponseForbidden("You are not authorized to view this page.")
 
-    # Standardize role display title for the template
     role_titles = {
         'staff': 'Barangay Staff Accounts',
         'volunteer': 'Volunteer Accounts',
         'requester': 'Family Member Accounts',
     }
 
-    # Fetch users belonging to the requested role
     users = User.objects.filter(role=role)
     title = role_titles.get(role, 'User Accounts')
 

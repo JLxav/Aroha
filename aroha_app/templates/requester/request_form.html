@@ -21,7 +21,7 @@
   }
 </style>
 
-<header class="topbar"><div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Family member</span></p></div><a class="btn secondary" href="{% url 'request_list' %}">Back to requests</a></header>
+<header class="topbar"><div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Requester</span></p></div><a class="btn secondary" href="{% url 'request_list' %}">Back to requests</a></header>
 <div class="form-panel">
   <div class="page-heading"><div><h1>{% if object %}Edit request{% else %}Make a request{% endif %}</h1><p class="subtitle">Tell us who needs help and what kind of assistance would be useful.</p></div></div>
   {% if preview %}<div class="message">Preview mode: <a href="{% url 'login' %}">log in</a> or <a href="{% url 'signup' %}">sign up</a> to save a request.</div>{% endif %}

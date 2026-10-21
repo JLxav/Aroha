@@ -2,6 +2,7 @@
 {% block title %}{{ role_label }} profile - Aroha{% endblock %}
 {% block body_class %}site-page{% endblock %}
 {% block card_class %}wide{% endblock %}
+
 {% block content %}
 <style>
   /* Modern Toggle Switch Styling */
@@ -44,14 +45,14 @@
 <header class="topbar">
   <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· {{ role_label }}</span></p></div>
   <nav class="nav" aria-label="Main navigation">
-    <a class="btn secondary" href="{% if account_type == 'volunteer' %}{% url 'volunteer_list' %}{% elif account_type == 'family-member' %}{% url 'request_list' %}{% else %}{% url 'barangay_request_list' %}{% endif %}{% if admin_preview %}?from_admin=1{% endif %}">Dashboard</a>
-    {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}
+    <a class="btn secondary" href="{% if account_type == 'volunteer' %}{% url 'volunteer_list' %}{% elif account_type == 'requester' %}{% url 'request_list' %}{% else %}{% url 'barangay_request_list' %}{% endif %}{% if admin_preview %}?from_admin=1{% endif %}">Dashboard</a>
+    {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_panel' %}">Back to Admin Directory</a>{% endif %}
   </nav>
 </header>
 
 <div class="form-panel">
-  <div class="page-heading"><div><h1>Profile</h1><p class="subtitle">Sample account profile preview.</p></div></div>
-  
+  <div class="page-heading"><div><h1>Profile</h1></div></div>
+ 
   <section class="detail-list">
     <span class="detail-label">Name</span><p class="detail-value">{{ display_name }}</p>
     <span class="detail-label">Username</span><p class="detail-value">{{ username }}</p>

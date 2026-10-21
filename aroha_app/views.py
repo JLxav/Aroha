@@ -114,17 +114,29 @@ def dashboard_redirect(request):
 
 
 @login_required
-def profile_preview(request, role="family-member"):
+def profile_preview(request, role="requester"):
     user = request.user
+
+    # Automatically map legacy 'family-member' URL parameter to 'requester'
+    if role == "family-member":
+        role = "requester"
 
     if request.method == "POST":
         user.is_otp_enabled = "is_otp_enabled" in request.POST
         user.save()
         return redirect("profile_preview", role=role)
 
+    # Role display label dictionary
+    ROLE_LABELS = {
+        "requester": "Requester",
+        "staff": "Barangay staff",
+        "volunteer": "Volunteer",
+        "admin": "Admin",
+    }
+
     context = {
         "account_type": role,
-        "role_label": "Family member" if role == "family-member" else role.capitalize(),
+        "role_label": ROLE_LABELS.get(role, user.get_role_display()),
         "display_name": user.get_full_name() or user.username,
         "username": user.username,
         "email": user.email or "Not provided",
@@ -218,7 +230,7 @@ def request_edit(request, pk):
 
 @login_required
 def request_delete(request, pk):
-    """Allow a family member to delete their own request."""
+    """Allow a requester to delete their own request."""
     help_request = get_object_or_404(
         HelpRequest,
         pk=pk,
@@ -233,7 +245,7 @@ def request_delete(request, pk):
 
 @login_required
 def request_mark_complete(request, pk):
-    """Let the family member confirm that an in-progress request is complete."""
+    """Let the requester confirm that an in-progress request is complete."""
     help_request = get_object_or_404(
         HelpRequest,
         pk=pk,
@@ -328,7 +340,7 @@ def barangay_ratings(request):
 
 @login_required
 def barangay_pending_accounts(request):
-    """List family member and volunteer accounts awaiting approval."""
+    """List requester and volunteer accounts awaiting approval."""
     if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
         messages.error(request, "You do not have permission to approve accounts.")
         return redirect("dashboard_redirect")
@@ -344,7 +356,7 @@ def barangay_pending_accounts(request):
 
 @login_required
 def barangay_approve_account(request, pk):
-    """Approve a pending family member or volunteer account."""
+    """Approve a pending requester or volunteer account."""
     if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
         messages.error(request, "You do not have permission to approve accounts.")
         return redirect("dashboard_redirect")
@@ -366,7 +378,7 @@ def barangay_approve_account(request, pk):
 
 @login_required
 def barangay_reject_account(request, pk):
-    """Mark a pending family member or volunteer account as rejected."""
+    """Mark a pending requester or volunteer account as rejected."""
     if not (request.user.is_superuser or request.user.role in ["staff", "admin"]):
         messages.error(request, "You do not have permission to reject accounts.")
         return redirect("dashboard_redirect")
@@ -456,7 +468,7 @@ def volunteer_list(request):
 
 @login_required
 def volunteer_history(request):
-    """Show a volunteer's completed or rejected assignments without family feedback."""
+    """Show a volunteer's completed or rejected assignments without requester feedback."""
     requests = HelpRequest.objects.filter(
         assigned_volunteer=request.user,
         status__in=[HelpRequest.Status.COMPLETED, HelpRequest.Status.REJECTED],
@@ -524,7 +536,7 @@ def admin_user_list(request, role):
     role_titles = {
         'staff': 'Barangay Staff Accounts',
         'volunteer': 'Volunteer Accounts',
-        'requester': 'Family Member Accounts',
+        'requester': 'Requester Accounts',
     }
 
     search_query = request.GET.get('q', '').strip()

@@ -4,7 +4,7 @@
 {% block card_class %}wide{% endblock %}
 {% block content %}
 <header class="topbar">
-  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Family member</span></p></div>
+  <div class="brand"><span class="brand-mark">A</span><p class="brand-name">Aroha <span class="subtitle">· Requester</span></p></div>
   <nav class="nav" aria-label="Main navigation"><a class="btn secondary" href="{% url 'request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Back to requests</a>{% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}</nav>
 </header>
 <section class="page-heading"><div><h1>Request history</h1><p class="subtitle">Completed and rejected requests appear here.</p></div></section>

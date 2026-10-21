@@ -24,6 +24,12 @@
         <span class="meta">{{ item.created_at|date:"M j, Y · g:i a" }}</span>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
           {% if item.status == "pending" or item.status == "in_progress" %}<a class="btn small secondary" href="{% url 'request_edit' item.pk %}{% if admin_preview %}?from_admin=1{% endif %}">Edit request</a>{% endif %}
+          
+          {% if item.status == "in_progress" and not admin_preview %}
+            <form method="post" action="{% url 'request_mark_complete' item.pk %}" style="margin:0" onsubmit="return confirm('Mark this request as completed?');">
+              {% csrf_token %}<button type="submit" class="btn small">Mark complete</button>
+            </form>
+          {% endif %}
         </div>
       </div>
     </article>

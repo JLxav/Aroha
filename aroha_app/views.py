@@ -639,4 +639,4 @@ def admin_reassign_role(request, user_id):
             user.role = new_role
             user.save()
             messages.success(request, f"Role for {user.username} changed to {user.get_role_display()}.")
-    return redirect('admin_user_list', role=role if 'role' in locals() else user.role)
+    return redirect("admin_user_list", role=user.role)

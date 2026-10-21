@@ -27,7 +27,7 @@ class User(AbstractUser):
         ADMIN = "admin", "Admin"
         STAFF = "staff", "Barangay Staff"
         VOLUNTEER = "volunteer", "Volunteer"
-        REQUESTER = "requester", "Family Member"
+        REQUESTER = "requester", "Requester"
 
     # User Role & Account Flags
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.REQUESTER)
@@ -35,7 +35,7 @@ class User(AbstractUser):
     is_approved = models.BooleanField(default=False)  # Admin/staff approval flag
     is_rejected = models.BooleanField(default=False)  # Registration rejection flag
     email = models.EmailField(blank=True, null=True)   # Email for notifications and 2FA
-    is_otp_enabled = models.BooleanField(default=False)  # Enables 2FA email verification on login
+    is_otp_enabled = models.BooleanField(default=True)  # Enables 2FA email verification on login
 
     def save(self, *args, **kwargs):
         # Superuser defaults

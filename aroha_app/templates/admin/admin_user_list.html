@@ -190,10 +190,7 @@
                                         <a href="{% url 'admin_toggle_active' item.id %}" class="btn-act btn-reactivate">Reactivate</a>
                                     {% endif %}
 
-                                    <form method="post" action="{% url 'admin_force_password_reset' item.id %}" style="margin:0;" onsubmit="return confirm('Send password reset email to {{ item.email }}?');">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn-act btn-reset">Reset Pass</button>
-                                    </form>
+                                    
                                 </div>
                             </td>
                         </tr>

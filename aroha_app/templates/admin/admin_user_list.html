@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} · Aroha Admin</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #faf9f6; color: #2c352e; padding: 30px 50px; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .brand { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 500; color: #2b3a2d; }
+        .brand img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; }
+        .role-tag { color: #71717a; font-weight: 400; }
+
+        .nav-btn { display: inline-block; padding: 8px 18px; border: 1px solid #d8d2c5; border-radius: 12px; background-color: #ffffff; color: #2c352e; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; cursor: pointer; }
+        .nav-btn:hover { background-color: #f3efe6; }
+
+        .page-title { font-family: 'Georgia', 'Times New Roman', serif; font-size: 34px; font-weight: 400; color: #2b3a2d; margin-bottom: 20px; }
+
+        /* Controls & Filter Bar */
+        .controls-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tab { padding: 8px 16px; border-radius: 10px; text-decoration: none; background: #e8dfd1; color: #2b3a2d; font-size: 13px; font-weight: 500; }
+        .tab.active { background: #1e3923; color: #ffffff; }
+
+        .search-box { display: flex; gap: 8px; }
+        .search-input { padding: 8px 14px; border: 1px solid #d8d2c5; border-radius: 10px; font-size: 14px; width: 220px; background: #fff; }
+        .btn-search { background-color: #1e3923; color: #fff; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; }
+
+        /* User Directory Table */
+        .directory-card { background: #ffffff; border: 1px solid #e8dfd1; border-radius: 16px; overflow: hidden; padding: 10px; }
+        .table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        .table th { background: #faf9f6; padding: 14px; color: #586059; font-weight: 600; border-bottom: 1px solid #e8dfd1; }
+        .table td { padding: 14px; border-bottom: 1px solid #f3efe6; vertical-align: middle; }
+
+        /* Status Pills */
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .badge-approved { background: #d2e7d6; color: #1e3923; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-rejected { background: #f8d7da; color: #721c24; }
+        .badge-deactivated { background: #e2e3e5; color: #383d41; }
+        .badge-otp { background: #e0f2fe; color: #0369a1; margin-left: 4px; }
+
+        /* Action Buttons */
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .btn-act { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; color: #fff; }
+        .btn-approve { background: #28a745; }
+        .btn-reject { background: #dc3545; }
+        .btn-deactivate { background: #d97706; }
+        .btn-reactivate { background: #0284c7; }
+        .btn-reset { background: #6b7280; }
+        .role-dropdown { padding: 6px 10px; border-radius: 8px; border: 1px solid #d8d2c5; font-size: 13px; background: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Top Navigation Header -->
+        <header class="header">
+            <div class="brand">
+                <img src="{% static 'aroha/images/aroha-logo.png' %}" alt="Aroha Logo">
+                <div>Aroha <span class="role-tag">· Admin</span></div>
+            </div>
+            <div>
+                <a href="{% url 'admin_panel' %}" class="nav-btn">← Back to Directories</a>
+            </div>
+        </header>
+
+        <h1 class="page-title">{{ page_title }}</h1>
+
+        <!-- Filter & Search Controls -->
+        <div class="controls-bar">
+            <div class="tabs">
+                <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}" class="tab {% if status_filter == 'all' %}active{% endif %}">All</a>
+                <a href="?status=pending{% if search_query %}&q={{ search_query }}{% endif %}" class="tab {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+                <a href="?status=approved{% if search_query %}&q={{ search_query }}{% endif %}" class="tab {% if status_filter == 'approved' %}active{% endif %}">Approved</a>
+                <a href="?status=rejected{% if search_query %}&q={{ search_query }}{% endif %}" class="tab {% if status_filter == 'rejected' %}active{% endif %}">Rejected</a>
+                <a href="?status=deactivated{% if search_query %}&q={{ search_query }}{% endif %}" class="tab {% if status_filter == 'deactivated' %}active{% endif %}">Deactivated</a>
+            </div>
+
+            <form method="get" class="search-box">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search username, email..." class="search-input">
+                <button type="submit" class="btn-search">Search</button>
+            </form>
+        </div>
+
+        <!-- Directory Table -->
+        <div class="directory-card">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User Details</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        <th>Activity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in users %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.username }}</strong><br>
+                                <small style="color:#71717a;">{{ item.email|default:"No Email" }}</small>
+                            </td>
+
+                            <td>
+                                {% if not item.is_active %}
+                                    <span class="badge badge-deactivated">Deactivated</span>
+                                {% elif item.is_rejected %}
+                                    <span class="badge badge-rejected">Rejected</span>
+                                {% elif item.is_approved %}
+                                    <span class="badge badge-approved">Approved</span>
+                                {% else %}
+                                    <span class="badge badge-pending">Pending</span>
+                                {% endif %}
+
+                                {% if item.is_otp_enabled %}
+                                    <span class="badge badge-otp">2FA</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <form method="post" action="{% url 'admin_reassign_role' item.id %}" style="margin:0;">
+                                    {% csrf_token %}
+                                    <select name="role" class="role-dropdown" onchange="this.form.submit()">
+                                        {% for val, lbl in role_choices %}
+                                            <option value="{{ val }}" {% if item.role == val %}selected{% endif %}>{{ lbl }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </td>
+
+                            <td>
+                                <small><strong>Requests:</strong> {{ item.requests_count }}</small>
+                            </td>
+
+                            <td>
+                                <div class="actions">
+                                    {% if not item.is_approved and not item.is_rejected %}
+                                        <a href="{% url 'admin_approve_user' item.id %}" class="btn-act btn-approve">Approve</a>
+                                        <a href="{% url 'admin_reject_user' item.id %}" class="btn-act btn-reject" onclick="return confirm('Reject {{ item.username }}?');">Reject</a>
+                                    {% endif %}
+
+                                    {% if item.is_active %}
+                                        <a href="{% url 'admin_toggle_active' item.id %}" class="btn-act btn-deactivate" onclick="return confirm('Deactivate {{ item.username }}?');">Deactivate</a>
+                                    {% else %}
+                                        <a href="{% url 'admin_toggle_active' item.id %}" class="btn-act btn-reactivate">Reactivate</a>
+                                    {% endif %}
+
+                                    <form method="post" action="{% url 'admin_force_password_reset' item.id %}" style="margin:0;" onsubmit="return confirm('Send password reset email to {{ item.email }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-act btn-reset">Reset Pass</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding: 24px; color:#71717a;">No user accounts found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

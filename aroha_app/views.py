@@ -1,5 +1,8 @@
 import random
 
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.forms import PasswordResetForm
+from django.db.models import Count, Q
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
@@ -70,16 +73,12 @@ def verify_otp_view(request):
             user = User.objects.get(id=user_id)
             login(request, user)
             
+            # Clear OTP session state
             del request.session['pre_otp_user_id']
             del request.session['admin_otp']
 
-            if user.role == User.Role.VOLUNTEER:
-                return redirect('volunteer_list')
-            elif user.role == User.Role.REQUESTER:
-                return redirect('request_list')
-            elif user.is_staff or user.is_superuser:
-                return redirect('barangay_request_list')
-            return redirect('homepage')
+            # Let dashboard_redirect handle routing by role
+            return redirect('dashboard_redirect')
         else:
             messages.error(request, 'Invalid verification code. Please try again.')
 
@@ -528,12 +527,116 @@ def admin_user_list(request, role):
         'requester': 'Family Member Accounts',
     }
 
-    users = User.objects.filter(role=role)
-    title = role_titles.get(role, 'User Accounts')
+    search_query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', 'all')
+
+    # Base query annotated with request activity snapshot
+    users = User.objects.filter(role=role).annotate(
+        requests_count=Count('requests', distinct=True)
+    ).order_by('-date_joined')
+
+    # Search Bar Filter
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    # Status Tab Filter
+    if status_filter == 'pending':
+        users = users.filter(is_approved=False, is_rejected=False)
+    elif status_filter == 'approved':
+        users = users.filter(is_approved=True, is_active=True)
+    elif status_filter == 'rejected':
+        users = users.filter(is_rejected=True)
+    elif status_filter == 'deactivated':
+        users = users.filter(is_active=False)
 
     context = {
         'users': users,
         'role': role,
-        'page_title': title,
+        'page_title': role_titles.get(role, 'User Accounts'),
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'role_choices': User.Role.choices,
     }
-    return render(request, 'admin_panel/admin_user_list.html', context)
+    return render(request, 'admin/admin_user_list.html', context)
+
+
+@login_required
+def admin_approve_user(request, user_id):
+    if not (request.user.is_superuser or request.user.role == User.Role.ADMIN):
+        return HttpResponseForbidden("Unauthorized")
+    user = get_object_or_404(User, id=user_id)
+    user.is_approved = True
+    user.is_rejected = False
+    user.save()
+    messages.success(request, f"Account for {user.username} approved.")
+    return redirect('admin_user_list', role=user.role)
+
+
+@login_required
+def admin_reject_user(request, user_id):
+    if not (request.user.is_superuser or request.user.role == User.Role.ADMIN):
+        return HttpResponseForbidden("Unauthorized")
+    user = get_object_or_404(User, id=user_id)
+    user.is_approved = False
+    user.is_rejected = True
+    user.save()
+    messages.success(request, f"Account for {user.username} rejected.")
+    return redirect('admin_user_list', role=user.role)
+
+
+@login_required
+def admin_toggle_active(request, user_id):
+    if not (request.user.is_superuser or request.user.role == User.Role.ADMIN):
+        return HttpResponseForbidden("Unauthorized")
+    user = get_object_or_404(User, id=user_id)
+    if user == request.user:
+        messages.error(request, "You cannot deactivate your own account.")
+        return redirect('admin_user_list', role=user.role)
+
+    user.is_active = not user.is_active
+    user.save()
+    status_str = "reactivated" if user.is_active else "deactivated"
+    messages.success(request, f"Account for {user.username} has been {status_str}.")
+    return redirect('admin_user_list', role=user.role)
+
+
+@login_required
+def admin_force_password_reset(request, user_id):
+    if not (request.user.is_superuser or request.user.role == User.Role.ADMIN):
+        return HttpResponseForbidden("Unauthorized")
+    user = get_object_or_404(User, id=user_id)
+    if not user.email:
+        messages.error(request, f"{user.username} does not have an email assigned.")
+        return redirect('admin_user_list', role=user.role)
+
+    form = PasswordResetForm({'email': user.email})
+    if form.is_valid():
+        form.save(
+            request=request,
+            use_https=request.is_secure(),
+            email_template_name='registration/password_reset_email.html',
+            subject_template_name='registration/password_reset_subject.txt',
+        )
+        messages.success(request, f"Password reset email sent to {user.email}.")
+    else:
+        messages.error(request, f"Could not send reset email.")
+    return redirect('admin_user_list', role=user.role)
+
+
+@login_required
+def admin_reassign_role(request, user_id):
+    if not (request.user.is_superuser or request.user.role == User.Role.ADMIN):
+        return HttpResponseForbidden("Unauthorized")
+    if request.method == "POST":
+        user = get_object_or_404(User, id=user_id)
+        new_role = request.POST.get('role')
+        if new_role in [c[0] for c in User.Role.choices]:
+            user.role = new_role
+            user.save()
+            messages.success(request, f"Role for {user.username} changed to {user.get_role_display()}.")
+    return redirect('admin_user_list', role=role if 'role' in locals() else user.role)

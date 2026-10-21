@@ -38,10 +38,19 @@ class User(AbstractUser):
     is_otp_enabled = models.BooleanField(default=False)  # Enables 2FA email verification on login
 
     def save(self, *args, **kwargs):
-        """Automatically approve and assign ADMIN role to Django superusers."""
+        # Superuser defaults
         if self.is_superuser:
             self.role = self.Role.ADMIN
             self.is_approved = True
+            self.is_staff = True
+
+        # Keep is_staff in sync with role
+        if self.role in [self.Role.STAFF, self.Role.ADMIN]:
+            self.is_staff = True
+        else:
+            if not self.is_superuser:
+                self.is_staff = False
+
         super().save(*args, **kwargs)
 
     def __str__(self):

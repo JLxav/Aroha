@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
- 
+from django.contrib.auth import authenticate
 from .models import User
  
  
@@ -62,20 +62,45 @@ class SignUpForm(forms.ModelForm):
  
  
 class ApprovedAuthenticationForm(AuthenticationForm):
-    """Blocks login until an admin has approved the account."""
- 
-    def confirm_login_allowed(self, user):
-        super().confirm_login_allowed(user)
-        if user.is_rejected:
-            raise forms.ValidationError(
-                "This account was not approved. Please contact your barangay administrator.",
-                code="account_rejected",
+    def clean(self):
+        username = self.cleaned_data.get("username")
+        password = self.cleaned_data.get("password")
+
+        if username and password:
+            # 1. Attempt standard authentication
+            self.user_cache = authenticate(
+                self.request, username=username, password=password
             )
-        if not user.is_approved:
-            raise forms.ValidationError(
-                "Your account is still waiting for admin approval.",
-                code="not_approved",
-            )
+
+            # 2. If authentication failed, inspect why
+            if self.user_cache is None:
+                user = User.objects.filter(username=username).first()
+
+                # If the user exists and the password is correct:
+                if user and user.check_password(password):
+                    if not user.is_active:
+                        raise forms.ValidationError(
+                            "This account has been deactivated. Please contact an administrator.",
+                            code="deactivated",
+                        )
+                    if user.is_rejected:
+                        raise forms.ValidationError(
+                            "Your account registration has been rejected.",
+                            code="rejected",
+                        )
+                    if not user.is_approved:
+                        raise forms.ValidationError(
+                            "Your account is awaiting admin approval.",
+                            code="unapproved",
+                        )
+
+                # Fall back to standard wrong username/password error
+                raise self.get_invalid_login_error()
+
+            else:
+                self.confirm_login_allowed(self.user_cache)
+
+        return self.cleaned_data
 
 from django import forms
 from .models import HelpRequest

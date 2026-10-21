@@ -71,6 +71,7 @@
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s ease;
+            cursor: pointer;
         }
 
         .nav-btn:hover {
@@ -167,14 +168,14 @@
 
             <!-- 3 Directories Grid -->
             <div class="cards-grid">
-                
+               
                 <!-- Barangay Accounts -->
                 <div class="card">
                     <div class="card-content">
                         <h3>Barangay Accounts</h3>
                         <p>Browse barangay staff accounts.</p>
                     </div>
-                    <a href="#" class="btn-action">View accounts</a>
+                    <a href="{% url 'admin_user_list' 'staff' %}" class="btn-action">View accounts</a>
                 </div>
 
                 <!-- Volunteer Accounts -->
@@ -183,16 +184,16 @@
                         <h3>Volunteer Accounts</h3>
                         <p>Browse volunteer accounts.</p>
                     </div>
-                    <a href="#" class="btn-action">View accounts</a>
+                    <a href="{% url 'admin_user_list' 'volunteer' %}" class="btn-action">View accounts</a>
                 </div>
 
                 <!-- Family Member Accounts -->
                 <div class="card">
                     <div class="card-content">
                         <h3>Requester Accounts</h3>
-                        <p>Browser requester accounts.</p>
+                        <p>Browse requester accounts.</p>
                     </div>
-                    <a href="#" class="btn-action">View accounts</a>
+                    <a href="{% url 'admin_user_list' 'requester' %}" class="btn-action">View accounts</a>
                 </div>
 
             </div>

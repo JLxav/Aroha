@@ -62,6 +62,11 @@ urlpatterns = [
     path("profile/<str:role>/", views.profile_preview, name="profile_preview"),
 
     # Custom Admin Panel Routes
-    path('admin/', views.admin_panel, name='admin_panel'),
-    path('admin/accounts/<str:role>/', views.admin_user_list, name='admin_user_list'),
+    path("admin-panel/", views.admin_panel, name="admin_panel"),
+    path("admin-panel/users/<str:role>/", views.admin_user_list, name="admin_user_list"),
+    path("admin-panel/users/<int:user_id>/approve/", views.admin_approve_user, name="admin_approve_user"),
+    path("admin-panel/users/<int:user_id>/reject/", views.admin_reject_user, name="admin_reject_user"),
+    path("admin-panel/users/<int:user_id>/toggle-active/", views.admin_toggle_active, name="admin_toggle_active"),
+    path("admin-panel/users/<int:user_id>/reset-password/", views.admin_force_password_reset, name="admin_force_password_reset"),
+    path("admin-panel/users/<int:user_id>/reassign-role/", views.admin_reassign_role, name="admin_reassign_role"),
 ]

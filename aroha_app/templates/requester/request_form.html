@@ -45,13 +45,9 @@
   {% if object and object.status != 'completed' and object.status != 'rejected' and not admin_preview %}
     <form id="request-delete-form" method="post" action="{% url 'request_delete' object.pk %}">{% csrf_token %}</form>
   {% endif %}
-  {% if object and not admin_preview %}
-    <form id="request-complete-form" method="post" action="{% url 'request_mark_complete' object.pk %}">{% csrf_token %}</form>
-  {% endif %}
   <div class="form-actions">
     {% if object and not admin_preview %}<div style="display:flex;gap:8px;margin-right:auto">
       {% if object.status != 'completed' and object.status != 'rejected' %}<button type="submit" form="request-delete-form" class="btn" style="background:#994d40" onclick="return confirm('Delete this request? If a volunteer has accepted it, it will be removed from their list too.');">Delete request</button>{% endif %}
-      <button type="submit" form="request-complete-form" class="btn" style="background:#587548" onclick="return confirm('Mark this request as completed?');">Mark complete</button>
     </div>{% endif %}
     <a class="btn secondary" href="{% url 'request_list' %}{% if admin_preview %}?from_admin=1{% endif %}">Cancel</a>
     {% if admin_preview %}<a class="btn secondary" href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>{% endif %}

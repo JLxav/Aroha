@@ -142,8 +142,16 @@ DAVAO_BARANGAYS = [
     "Toril", "Tugbok", "Tugbok Proper", "Ula", "Vicente Hizon Sr.", "Waan", "Wangan", "Wines"
 ]
 
+
 class HelpRequestForm(forms.ModelForm):
     """Form for requesters to submit senior assistance requests."""
+
+    # Extra non-model field for the phone number
+    contact_number = forms.CharField(
+        required=False,
+        label="Contact Number",
+        widget=forms.TextInput(attrs={"placeholder": "09123456789"}),
+    )
 
     class Meta:
         model = HelpRequest
@@ -157,6 +165,9 @@ class HelpRequestForm(forms.ModelForm):
             "contact_person",
             "details",
         ]
+        labels = {
+            "contact_person": "Contact Person Name",
+        }
         widgets = {
             "house_number": forms.TextInput(
                 attrs={"placeholder": "House/Block/Lot No."}
@@ -167,14 +178,42 @@ class HelpRequestForm(forms.ModelForm):
             "barangay": forms.TextInput(
                 attrs={
                     "placeholder": "Barangay",
-                    "list": "davao-barangays",  # Connects field to the datalist
+                    "list": "davao-barangays",
                     "autocomplete": "off",
                 }
             ),
             "city": forms.TextInput(
                 attrs={"placeholder": "City / Municipality"}
             ),
+            "contact_person": forms.TextInput(
+                attrs={"placeholder": "e.g. Juan Dela Cruz"}
+            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If editing an existing request, split "Name - Number" back into the two form fields
+        if self.instance and self.instance.pk and self.instance.contact_person:
+            raw_contact = self.instance.contact_person
+            if " - " in raw_contact:
+                parts = raw_contact.rsplit(" - ", 1)
+                self.initial["contact_person"] = parts[0]
+                self.initial["contact_number"] = parts[1]
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        name = self.cleaned_data.get("contact_person", "").strip()
+        number = self.cleaned_data.get("contact_number", "").strip()
+
+        # Combine name and phone number into the single contact_person model field
+        if number:
+            instance.contact_person = f"{name} - {number}"
+        else:
+            instance.contact_person = name
+
+        if commit:
+            instance.save()
+        return instance
 
 
 class BarangayStatusForm(forms.ModelForm):

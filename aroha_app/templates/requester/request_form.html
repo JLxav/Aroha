@@ -5,17 +5,20 @@
 
 {% block content %}
 <style>
-  .location-grid {
+  .location-grid,
+  .contact-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px 16px;
     margin-bottom: 16px;
   }
-  .location-grid p {
+  .location-grid p,
+  .contact-grid p {
     margin: 0;
   }
   @media (max-width: 600px) {
-    .location-grid {
+    .location-grid,
+    .contact-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -38,7 +41,6 @@
         <label for="{{ form.barangay.id_for_label }}">{{ form.barangay.label }}</label>
         {{ form.barangay }}
         {{ form.barangay.errors }}
-        <!-- Auto-complete dropdown list for Davao City Barangays -->
         <datalist id="davao-barangays">
           {% for bgry in barangays %}
             <option value="{{ bgry }}"></option>
@@ -48,7 +50,12 @@
       <p><label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>{{ form.city }}{{ form.city.errors }}</p>
     </div>
 
-    <p><label for="{{ form.contact_person.id_for_label }}">{{ form.contact_person.label }}</label>{{ form.contact_person }}{{ form.contact_person.errors }}</p>
+    <!-- Contact Details Side-by-Side Grid -->
+    <div class="contact-grid">
+      <p><label for="{{ form.contact_person.id_for_label }}">{{ form.contact_person.label }}</label>{{ form.contact_person }}{{ form.contact_person.errors }}</p>
+      <p><label for="{{ form.contact_number.id_for_label }}">{{ form.contact_number.label }}</label>{{ form.contact_number }}{{ form.contact_number.errors }}</p>
+    </div>
+
     <p><label for="{{ form.details.id_for_label }}">{{ form.details.label }}</label>{{ form.details }}{{ form.details.errors }}</p>
 
   </form>

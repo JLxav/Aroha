@@ -218,7 +218,9 @@ def request_edit(request, pk):
 
     # Restrict editing strictly to pending requests (blocks in-progress & completed tasks)
     if help_request.status != HelpRequest.Status.PENDING:
-        messages.error(request, "You cannot edit requests that are already in progress or completed.")
+        messages.error(
+            request, "You cannot edit requests that are already in progress or completed."
+        )
         return redirect("request_list")
 
     if request.method == "POST":
@@ -231,7 +233,9 @@ def request_edit(request, pk):
         form = HelpRequestForm(instance=help_request)
 
     return render(
-        request, "requester/request_form.html", {"form": form, "object": help_request}
+        request,
+        "requester/request_form.html",
+        {"form": form, "object": help_request, "barangays": DAVAO_BARANGAYS},
     )
 
 

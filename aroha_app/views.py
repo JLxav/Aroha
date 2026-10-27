@@ -207,11 +207,12 @@ def request_create(request):
 
 @login_required
 def request_edit(request, pk):
-    """Handles editing an existing pending or in-progress request."""
+    """Handles editing an existing pending request."""
     help_request = get_object_or_404(HelpRequest, pk=pk, requester=request.user)
 
-    if help_request.status not in [HelpRequest.Status.PENDING, HelpRequest.Status.IN_PROGRESS]:
-        messages.error(request, "You can only edit pending or in-progress requests.")
+    # Restrict editing strictly to pending requests (blocks in-progress & completed tasks)
+    if help_request.status != HelpRequest.Status.PENDING:
+        messages.error(request, "You cannot edit requests that are already in progress or completed.")
         return redirect("request_list")
 
     if request.method == "POST":

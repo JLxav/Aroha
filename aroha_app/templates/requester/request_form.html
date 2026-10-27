@@ -26,7 +26,7 @@
   <div class="page-heading"><div><h1>{% if object %}Edit request{% else %}Make a request{% endif %}</h1><p class="subtitle">Tell us who needs help and what kind of assistance would be useful.</p></div></div>
   {% if preview %}<div class="message">Preview mode: <a href="{% url 'login' %}">log in</a> or <a href="{% url 'signup' %}">sign up</a> to save a request.</div>{% endif %}
   <form id="request-edit-form" method="post">{% csrf_token %}{{ form.non_field_errors }}
-    
+   
     <p><label for="{{ form.request_type.id_for_label }}">{{ form.request_type.label }}</label>{{ form.request_type }}{{ form.request_type.errors }}</p>
     <p><label for="{{ form.senior_name.id_for_label }}">{{ form.senior_name.label }}</label>{{ form.senior_name }}{{ form.senior_name.errors }}</p>
 
@@ -34,7 +34,17 @@
     <div class="location-grid">
       <p><label for="{{ form.house_number.id_for_label }}">{{ form.house_number.label }}</label>{{ form.house_number }}{{ form.house_number.errors }}</p>
       <p><label for="{{ form.street.id_for_label }}">{{ form.street.label }}</label>{{ form.street }}{{ form.street.errors }}</p>
-      <p><label for="{{ form.barangay.id_for_label }}">{{ form.barangay.label }}</label>{{ form.barangay }}{{ form.barangay.errors }}</p>
+      <p>
+        <label for="{{ form.barangay.id_for_label }}">{{ form.barangay.label }}</label>
+        {{ form.barangay }}
+        {{ form.barangay.errors }}
+        <!-- Auto-complete dropdown list for Davao City Barangays -->
+        <datalist id="davao-barangays">
+          {% for bgry in barangays %}
+            <option value="{{ bgry }}"></option>
+          {% endfor %}
+        </datalist>
+      </p>
       <p><label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>{{ form.city }}{{ form.city.errors }}</p>
     </div>
 
@@ -57,7 +67,7 @@
         {% if object.status != 'completed' and object.status != 'rejected' %}
           <button type="submit" form="request-delete-form" class="btn" style="background:#994d40" onclick="return confirm('Delete this request? If a volunteer has accepted it, it will be removed from their list too.');">Delete request</button>
         {% endif %}
-        
+       
         {% if object.status == 'in_progress' %}
           <button type="submit" form="request-complete-form" class="btn" style="background:#587548" onclick="return confirm('Mark this request as completed?');">Mark complete</button>
         {% endif %}

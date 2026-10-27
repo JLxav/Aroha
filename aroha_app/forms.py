@@ -123,6 +123,25 @@ class ApprovedAuthenticationForm(AuthenticationForm):
 # ==========================================
 
 
+# Comprehensive list of Davao City Barangays
+DAVAO_BARANGAYS = [
+    "Agdao", "Alambre", "Alejandra Navarro (Lasang)", "Alfonso Angliongto Sr.",
+    "Bago Aplaya", "Bago Gallera", "Bago Oshiro", "Baguio", "Baliok", "Bangkas Heights",
+    "Bayanihan", "Bucana", "Buhangin", "Bunawan", "Cabantian", "Calinan", "Carmen",
+    "Catalunan Grande", "Catalunan Pequeño", "Centro (San Juan)", "Communal", "Crossing Bayabas",
+    "Dacudao", "Daliao", "Daliaon Plantation", "Datu Salumay", "Dumoy", "Eden", "El Rio",
+    "Gatungan", "Gov. Paciano Bangoy", "Gov. Vicente Duterte", "Gumalang", "Ilang",
+    "Indangan", "Kapitan Tomas Monteverde Sr.", "Kilate", "Lamanan", "Lapu-Lapu",
+    "Leon Garcia", "Lizada", "Los Amigos", "Lumiad", "Ma-a", "Mabuhay", "Magsaysay",
+    "Mahayag", "Malabog", "Malagos", "Manambulan", "Mandug", "Manuel Guianga", "Marapangi",
+    "Marilog", "Matina Aplaya", "Matina Biao", "Matina Crossing", "Matina Pangi", "Mintal",
+    "Muñoz", "Pampanga", "Panacan", "Pangyan", "Paquibato", "Poblacion", "R. Castillo",
+    "Riverside", "Saloy", "San Antonio", "San Isidro", "San Rafael", "Santa Ana", "Sasa",
+    "Sirawan", "Sirib", "Subasta", "Suawan", "Suazo", "Tacunan", "Tagakpan", "Tagluno",
+    "Tagurano", "Talandang", "Talomo", "Tamu-an", "Tark", "Tibuloy", "Tibungco", "Tigatto",
+    "Toril", "Tugbok", "Tugbok Proper", "Ula", "Vicente Hizon Sr.", "Waan", "Wangan", "Wines"
+]
+
 class HelpRequestForm(forms.ModelForm):
     """Form for requesters to submit senior assistance requests."""
 
@@ -145,7 +164,13 @@ class HelpRequestForm(forms.ModelForm):
             "street": forms.TextInput(
                 attrs={"placeholder": "Street name (optional)"}
             ),
-            "barangay": forms.TextInput(attrs={"placeholder": "Barangay"}),
+            "barangay": forms.TextInput(
+                attrs={
+                    "placeholder": "Barangay",
+                    "list": "davao-barangays",  # Connects field to the datalist
+                    "autocomplete": "off",
+                }
+            ),
             "city": forms.TextInput(
                 attrs={"placeholder": "City / Municipality"}
             ),

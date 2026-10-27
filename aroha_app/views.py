@@ -17,6 +17,7 @@ from .forms import (
     HelpRequestForm,
     SignUpForm,
     VolunteerFeedbackForm,
+    DAVAO_BARANGAYS,
 )
 from .models import HelpRequest, User
 
@@ -202,7 +203,12 @@ def request_create(request):
             return redirect("request_list")
     else:
         form = HelpRequestForm()
-    return render(request, "requester/request_form.html", {"form": form})
+
+    return render(
+        request,
+        "requester/request_form.html",
+        {"form": form, "barangays": DAVAO_BARANGAYS},
+    )
 
 
 @login_required
